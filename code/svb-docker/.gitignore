@@ -1,0 +1,10 @@
+# Ignore all environment files except for examples. This works unless the folder that the
+# .env files are in is itself ignored.
+*.env.*
+!*.env.*sample
+
+certbot/data
+
+backups/*
+!backups/README.md
+!backups/.gitkeep
