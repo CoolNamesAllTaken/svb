@@ -1,5 +1,5 @@
 # svb
-This is the github repository of Silicandy Valley Bank, the Silicon Valley's premeir treat banking partner.
+This is the GitHub repository of Silicandy Valley Bank, the Silicon Valley's premier treat banking partner.
 
 ## Folders
 * `affinity` - Graphic design files made with Affinity Designer.
