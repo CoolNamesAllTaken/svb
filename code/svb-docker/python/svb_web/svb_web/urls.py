@@ -16,7 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from svb_web import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('news_editor/', views.news_editor),
 ]

@@ -1,0 +1,20 @@
+{% comment %}
+  {% include "./snippets/news_feed.html" with articles=articles show_editor_fields=show_editor_fields %}
+  articles = {
+    headline: string,
+    author: { name: string, title?: string },
+    date_published: datetime,
+  }[]
+  show_editor_fields = boolean
+{% endcomment %}
+<!--
+  for each article
+    HEADLINE
+    author
+    if show_editor_fields
+      time published
+      if time published is undefined or in the future
+        [publish now]
+      if time_published is in the past
+        [unpublish]
+-->
