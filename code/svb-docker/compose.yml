@@ -34,7 +34,7 @@ services:
     image: postgres:16.0
     restart: always
     ports:
-      - 5431:5432 # expose non-default port outside docker network for debugging access
+      - 5432:5432 # expose default port outside docker network for debugging access
     env_file:
       - .env.svb
     volumes:
@@ -56,7 +56,9 @@ services:
       - ./python/svb_web:/app
     depends_on:
       - db
-    entrypoint: ["python3", "svb_web/manage.py", "runserver", "0.0.0.0:8000"]
+    entrypoint: >
+      sh -c "python3 manage.py runserver 0.0.0.0:8000"
+    # entrypoint: "/bin/sh -c 'while :; do sleep 100s; done;'"  #, "svb_web/manage.py", "runserver", "0.0.0.0:8000"]
 
   # pantsforbirds-wordpress-site:
   #   image: wordpress
