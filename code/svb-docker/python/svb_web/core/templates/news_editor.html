@@ -1,8 +1,7 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
-  <!--
-    "Editor" Feed (all articles, editor settings shown)
-  -->
+  <link rel="stylesheet" type="text/css" href="{% static 'core/css/news_editor.css' %}">
   <h1>Work in progress</h1>
   <div id="forms">
     <form id="article-form" method="post">
