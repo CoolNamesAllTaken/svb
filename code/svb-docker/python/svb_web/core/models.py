@@ -36,7 +36,7 @@ class Account(models.Model):
 
 
 class NewsAuthor(models.Model):
-    name = models.CharField(max_length=32)  # "Jane Doe"
+    name = models.CharField(max_length=32, unique=True)  # "Jane Doe"
     title = models.CharField(max_length=64, blank=True, null=True)  # "Candy QA"
 
 

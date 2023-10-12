@@ -1,4 +1,5 @@
 import datetime
+from models import NewsArticle, NewsAuthor
 
 
 def get_all_newsfeed():
@@ -11,9 +12,12 @@ def get_live_newsfeed():
     pass
 
 
-def create_article(headline: str, author_id: str):
+def create_article(headline: str, author_name: str):
     # create a new article
-    pass
+    author = NewsAuthor.objects.get(id=author_name)
+    article = NewsArticle(headline=headline, author=author)
+    article.save()
+    return article.id
 
 
 def publish_article(article_id: str, publish_at: datetime = None):
