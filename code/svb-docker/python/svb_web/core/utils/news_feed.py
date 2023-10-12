@@ -4,12 +4,13 @@ from models import NewsArticle, NewsAuthor
 
 def get_all_newsfeed():
     # return a list of articles in order of publish time
-    pass
+    return NewsArticle.objects.all().order_by('date_published')
 
 
 def get_live_newsfeed():
     # return a list of articles with publish time in the past in order of publish time
-    pass
+    all_news_feed = get_all_newsfeed()
+    return all_news_feed.filter(date_published__lte=datetime.datetime.now())
 
 
 def create_article(headline: str, author_name: str):
