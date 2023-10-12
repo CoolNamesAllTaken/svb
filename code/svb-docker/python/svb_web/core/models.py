@@ -24,7 +24,7 @@ class Account(models.Model):
         "AccountHolder",
         on_delete=models.CASCADE # delete Account when associated AccountHolder is deleted
     )
-    
+    interest_rate = models.FloatField()
     # Anchor Events:
     # - Interest rate changed.
     # - Cendy deposited into account.
