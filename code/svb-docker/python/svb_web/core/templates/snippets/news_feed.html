@@ -1,0 +1,24 @@
+{% comment %}
+  {% include "./snippets/news_feed.html" with articles=articles show_editor_fields=show_editor_fields %}
+  articles = {
+    headline: string,
+    author: { name: string, title?: string },
+    date_published: datetime,
+  }[]
+  show_editor_fields = boolean
+{% endcomment %}
+{% for article in articles %}
+  <div class="article">
+    <div class="headline">{{ article.headline }}</div>
+    <div class="author name">{{ article.author.name }}</div>
+    <div class="author title">{{ article.author.title }}</div>
+    {% if show_editor_fields %}
+      <div>Publish time: {{ article.date_published }}</div>
+      {% if not article.is_published %}
+        <button type="submit" name="publish" value="{{ article.headline }}">Publish Now</button>
+      {% else %}
+        <button type="submit" name="unpublish" value="{{ article.headline }}">Unpublish</button>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endfor %}
