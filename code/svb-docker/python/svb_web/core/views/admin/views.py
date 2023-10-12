@@ -8,4 +8,9 @@ def news_editor(request):
     #   handle publish/unpublish requests
     # get news feeds, add to context
     context = {}
-    return render(request, 'svb_web/news_editor.html', context=context)
+    return render(request, 'news_editor.html', context=context)
+
+
+def account(request, account_number=None):
+    context = {}
+    return render(request, "account.html", context)
