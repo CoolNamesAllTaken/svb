@@ -12,6 +12,11 @@ Windows: Install Git Bash.
 ## Bring Stuff Up
 `docker compose up --build`
 
+### Just add/modify a model?
+Run migrations!
+`docker compose -f compose.yml exec site python manage.py makemigrations`
+Then `docker compose -f compose.yml exec site python manage.py migrate`
+
 ## Where is everything?
 1. Container configuration info: `docker-compose.yaml`.
 2. Credentials: `env.svb` (DO NOT COMMIT THIS FILE). Sample credentials: `env.svb.sample`.
