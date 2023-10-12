@@ -14,18 +14,23 @@ def get_live_newsfeed():
 
 def create_article(headline: str, author_name: str):
     # create a new article
-    author = NewsAuthor.objects.get(id=author_name)
+    author = NewsAuthor.objects.get(name=author_name)
     article = NewsArticle(headline=headline, author=author)
     article.save()
-    return article.id
+    return article.headline
 
 
-def publish_article(article_id: str, publish_at: datetime = None):
-    # if no publish_at provided, publish article now
-    # set article publish time
-    pass
+def publish_article(headline: str, publish_at: datetime = None):
+    if publish_at is None:
+        publish_at = datetime.datetime.now()
+    article = NewsArticle.objects.get(headline=headline)
+    article.date_published = publish_at
+    article.save()
+    return article.headline
 
 
-def unpublish_article(article_id: str):
-    # set article publish time to None
-    pass
+def unpublish_article(headline: str):
+    article = NewsArticle.objects.get(headline=headline)
+    article.date_published = None
+    article.save()
+    return article.headline

@@ -41,6 +41,6 @@ class NewsAuthor(models.Model):
 
 
 class NewsArticle(models.Model):
-    headline = models.CharField(max_length=128)  # "Shrinkflation: King Size Candy 20% Smaller"
+    headline = models.CharField(max_length=128, unique=True)  # "Shrinkflation: King Size Candy 20% Smaller"
     author = models.ForeignKey('NewsAuthor', on_delete=models.RESTRICT)
     date_published = models.DateTimeField()
