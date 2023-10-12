@@ -16,5 +16,8 @@
       <button type="submit" name="action" value="create-author">Create Author</button>
     </form>
   </div>
-  {% include "./snippets/news_feed.html" with articles=articles show_editor_fields=True %}
+  <form id="publish-form" method="post">
+    {% csrf_token %}
+    {% include "./snippets/news_feed.html" with articles=articles show_editor_fields=True %}
+  </form>
 {% endblock content %}

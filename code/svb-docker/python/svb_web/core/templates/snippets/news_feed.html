@@ -15,9 +15,9 @@
     {% if show_editor_fields %}
       <div>Publish time: {{ article.date_published }}</div>
       {% if not article.is_published %}
-        <button data-action="publish" data-headline="{{ article.headline }}">Publish Now</button>
+        <button type="submit" name="publish" value="{{ article.headline }}">Publish Now</button>
       {% else %}
-        <button data-action="unpublish" data-headline="{{ article.headline }}">Unpublish</button>
+        <button type="submit" name="unpublish" value="{{ article.headline }}">Unpublish</button>
       {% endif %}
     {% endif %}
   </div>
