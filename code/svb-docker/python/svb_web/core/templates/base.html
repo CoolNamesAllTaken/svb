@@ -6,7 +6,10 @@
     <title>Silicandy Valley Bank</title>
   </head>
   <body>
+    {% for message in messages %}
+      <div>{{ message }}</div>
+    {% endfor %}
     {% block content %} {% endblock content %}
-    <!-- Bottom-of-page User Newsfeed (all published articles, editor settings hidden) -->
+    {% include "./snippets/news_feed.html" with articles=articles show_editor_fields=False %}
   </body>
 </html>

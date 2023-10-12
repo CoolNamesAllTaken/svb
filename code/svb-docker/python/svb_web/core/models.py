@@ -1,5 +1,5 @@
 from django.db import models
-# from datetime import 
+import datetime
 
 
 class IdCardPrintJob(models.Model):
@@ -39,8 +39,18 @@ class NewsAuthor(models.Model):
     name = models.CharField(max_length=32, unique=True)  # "Jane Doe"
     title = models.CharField(max_length=64, blank=True, null=True)  # "Candy QA"
 
+    def __str__(self):
+        return self.name
+
 
 class NewsArticle(models.Model):
     headline = models.CharField(max_length=128, unique=True)  # "Shrinkflation: King Size Candy 20% Smaller"
     author = models.ForeignKey('NewsAuthor', on_delete=models.RESTRICT)
-    date_published = models.DateTimeField()
+    date_published = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f'"{self.headline}" by {self.author.name}'
+
+    @property
+    def is_published(self):
+        return self.date_published is not None and datetime.datetime.now() > self.date_published

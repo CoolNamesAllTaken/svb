@@ -7,14 +7,18 @@
   }[]
   show_editor_fields = boolean
 {% endcomment %}
-<!--
-  for each article
-    HEADLINE
-    author
-    if show_editor_fields
-      time published
-      if time published is undefined or in the future
-        [publish now]
-      if time_published is in the past
-        [unpublish]
--->
+{% for article in articles %}
+  <div class="article">
+    <div class="headline">{{ article.headline }}</div>
+    <div class="author name">{{ article.author.name }}</div>
+    <div class="author title">{{ article.author.title }}</div>
+    {% if show_editor_fields %}
+      <div>Publish time: {{ article.date_published }}</div>
+      {% if not article.is_published %}
+        <button data-action="publish" data-headline="{{ article.headline }}">Publish Now</button>
+      {% else %}
+        <button data-action="unpublish" data-headline="{{ article.headline }}">Unpublish</button>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endfor %}

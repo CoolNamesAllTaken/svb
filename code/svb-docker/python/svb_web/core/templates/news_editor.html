@@ -4,4 +4,17 @@
     "Editor" Feed (all articles, editor settings shown)
   -->
   <h1>Work in progress</h1>
+  <div id="forms">
+    <form id="article-form" method="post">
+      {% csrf_token %}
+      {{ article_form }}
+      <button type="submit" name="action" value="create-article">Create Article</button>
+    </form>
+    <form id="author-form" method="post">
+      {% csrf_token %}
+      {{ author_form }}
+      <button type="submit" name="action" value="create-author">Create Author</button>
+    </form>
+  </div>
+  {% include "./snippets/news_feed.html" with articles=articles show_editor_fields=True %}
 {% endblock content %}

@@ -1,5 +1,5 @@
 import datetime
-from models import NewsArticle, NewsAuthor
+from core.models import NewsArticle, NewsAuthor
 
 
 def get_all_newsfeed():
