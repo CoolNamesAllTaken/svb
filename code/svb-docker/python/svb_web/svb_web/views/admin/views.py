@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.decorators import login_required
 
 
-@login_required
+# @login_required
 def news_editor(request):
     # if POST
     #   handle publish/unpublish requests
