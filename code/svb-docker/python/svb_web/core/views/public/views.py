@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from core.models import NewsArticle
+from core.utils.news_feed import get_live_newsfeed
 
 
 def article(request, article_headline=None):
@@ -8,7 +9,9 @@ def article(request, article_headline=None):
         article = NewsArticle.objects.get(headline=article_headline)
     except NewsArticle.DoesNotExist:
         article = None
+
     context = {
+        'articles': get_live_newsfeed(),
         'article': article,
     }
     return render(request, 'article.html', context=context)
