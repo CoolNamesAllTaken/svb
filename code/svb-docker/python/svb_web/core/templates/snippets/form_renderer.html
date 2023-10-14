@@ -1,0 +1,10 @@
+{% comment %}
+  {% include "./snippets/form_renderer.html" with form=form %}
+  form = django.forms.Form
+{% endcomment %}
+{% for field in form %}
+  <div class="field-wrapper">
+      {{ field.errors }}
+      {{ field.label_tag }} {{ field }}
+  </div>
+{% endfor %}
