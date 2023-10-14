@@ -31,10 +31,10 @@ echo -e "\tBackup Directory: $backup_dir."
 mkdir $backup_dir
 
 ## Download Media Content
-mkdir $backup_dir/media
+# mkdir $backup_dir/media
 site_container_name=$(docker ps -a --filter name=".*$docker_prefix-site.*" --format "{{.Names}}")
 echo -e -n "\tDownloading media content from $site_container_name:$DJANGO_MEDIA_ROOT..."
-docker cp $site_container_name:$DJANGO_MEDIA_ROOT $backup_dir/media
+docker cp $site_container_name:$DJANGO_MEDIA_ROOT $backup_dir
 echo -e "Done!"
 
 ## Download Database Content
