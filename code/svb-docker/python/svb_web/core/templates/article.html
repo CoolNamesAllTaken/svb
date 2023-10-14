@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/article.css' %}">
+  {% if article is None %}
+    <h1>Article not found</h1>
+  {% else %}
+    <img alt="" src="https://picsum.photos/800/300" class="banner" />
+    <article class="news-article">
+      <header>
+        <h1>{{ article.headline }}</h1>
+        <time class="time" pubdate datetime="{{ article.date_published|date:"y-m-d"}}" title="{{ article.date_published.date }}">{{ article.date_published }} </time>
+        <address class="author">
+          <div>{{ article.author.name }}{% if article.author.title is not None %} | {{ article.author.title }}{% endif %}</div>
+      </header>
+      <blockquote class="preview">{{ article.preview }}</blockquote>
+      <p class="body">{{ article.body }}</p>
+    </article>
+  {% endif %}
+{% endblock content %}

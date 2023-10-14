@@ -6,12 +6,12 @@
   <div id="forms">
     <form id="article-form" method="post">
       {% csrf_token %}
-      {{ article_form }}
+      {% include "./snippets/form_renderer.html" with form=article_form %}
       <button type="submit" name="action" value="create-article">Create Article</button>
     </form>
     <form id="author-form" method="post">
       {% csrf_token %}
-      {{ author_form }}
+      {% include "./snippets/form_renderer.html" with form=author_form %}
       <button type="submit" name="action" value="create-author">Create Author</button>
     </form>
   </div>
