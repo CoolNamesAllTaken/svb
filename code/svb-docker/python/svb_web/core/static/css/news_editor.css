@@ -10,22 +10,3 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
-
-.article {
-  padding: 50px;
-  border-top: blue;
-  border-radius: 5px;
-}
-
-.article .headline {
-  font-size: 1.5em;
-  font-weight: bold;
-}
-
-.article .author .name {
-  font-style: bold;
-}
-
-.article .author .title {
-  font-style: italic;
-}
