@@ -1,9 +1,9 @@
 #!/bin/bash
 
 ####################################################################################################
-# backup_download_wordpress
+# backup_download_postgres
 # 
-# This script downloads a backup of the specified wordpress website, including static files and
+# This script downloads a backup of the specified Django website, including static files and
 # database contents.
 #
 # Args:
@@ -16,17 +16,13 @@
 # do not need to be running for the backup to run successfully.
 ####################################################################################################
 
-echo "Creating Wordpress website backup..."
-website_name=$1 # first positional argument is website name, e.g. johnmcnelly
-if [ -e $website_name ]; then
-    echo -e "\tMissing required argument, please provide website name."
-    exit
-else
-    echo -e "\tWebsite Name: $website_name"
-fi
+echo "Creating Django website backup..."
+website_name="svb"
+docker_prefix=svb-docker
+env_file=../.env.$website_name
 
-docker_prefix=birdbox-docker
-# SED_NEWLINE_REPLACEMENT_STRING=':a;N;$!ba;s/\n/                                                                                \r/g'
+source $env_file
+echo -e "\tLoaded environment file $env_file."
 
 backups_dir=$(dirname "$0")/../backups
 backup_name=$website_name"_backup_$(date +%Y-%m-%d_%H\h%M\m%S\s)"
@@ -34,17 +30,15 @@ backup_dir=$backups_dir"/"$backup_name
 echo -e "\tBackup Directory: $backup_dir."
 mkdir $backup_dir
 
-## Download Wordpress Content
-site_container_name=$(docker ps -a --filter name=".*$website_name-wordpress-site.*" --format "{{.Names}}")
-echo -e -n "\tDownloading wordpress content from $site_container_name..."
-docker cp $site_container_name:/var/www/html/ $backup_dir
+## Download Media Content
+mkdir $backup_dir/media
+site_container_name=$(docker ps -a --filter name=".*$docker_prefix-site.*" --format "{{.Names}}")
+echo -e -n "\tDownloading media content from $site_container_name:$DJANGO_MEDIA_ROOT..."
+docker cp $site_container_name:$DJANGO_MEDIA_ROOT $backup_dir/media
 echo -e "Done!"
 
 ## Download Database Content
-db_container_name=$(docker ps -a --filter name=".*$website_name-wordpress-db.*" --format "{{.Names}}")
-db_env_file=$(dirname "$0")/../wordpress/.env.$website_name
-source $db_env_file # load database credentials
-echo -e "\tLoaded database credentials from $db_env_file."
+db_container_name=$(docker ps -a --filter name=".*$docker_prefix-db.*" --format "{{.Names}}")
 echo -e "\tDownloading database content from $db_container_name..."
 
 # Start the database container if it's not running yet.
@@ -60,7 +54,8 @@ else
 fi
 
 # Dump the database.
-docker exec $db_container_name mysqldump --user=root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE > $backup_dir/APP-DATA.SQL
+# No password required since running as root.
+docker exec $db_container_name pg_dump --username=$POSTGRES_USER $POSTGRES_DB > $backup_dir/APP-DATA.SQL
 
 # Stop the database container if we started it just for the backup.
 if [ $db_container_already_started == "false" ]; then
@@ -82,4 +77,4 @@ echo -e -n "\tDeleting folder of crap..."
 rm -rf $backup_dir
 echo -e "Done!"
 
-echo -e "\tWordpress website backup complete."
+echo -e "\tDjango website backup complete."

@@ -35,7 +35,7 @@ fi
 echo -e "\tWebsite Name: $website_name"
 echo -e "\tBackup Directory or File: $backup_name"
 
-docker_prefix=birdbox-docker
+docker_prefix=svb-docker
 
 ## Un-archive the backup if it's a .tar.gz file.
 if [[ $backup_name == *.tar.gz ]]; then
@@ -54,9 +54,9 @@ else
     untarred_backup=false
 fi
 
-## Upload Wordpress Content
-site_container_name=$(docker ps -a --filter name=".*$website_name-wordpress-site.*" --format "{{.Names}}")
-echo -e "\tRestoring wordpress content to $site_container_name..."
+## Upload Media Content
+site_container_name=$(docker ps -a --filter name=".*$docker_prefix-site.*" --format "{{.Names}}")
+echo -e "\tRestoring media content to $site_container_name..."
 
 # Start the site container if it's not running yet.
 if [ $(docker inspect -f '{{.State.Running}}' "$site_container_name") == "true" ]; then
@@ -73,18 +73,18 @@ fi
 # Remove existing website files.
 # Docker defaults to running in /var/www/html.
 # Need to pass in "rm -r *" as a string so it doesn't expand to pattern in current directory outside container.
-echo -e -n "\t\tDeleting old static files..."
-docker exec $site_container_name sh -c "rm -r *" # clear out old static files
+echo -e -n "\t\tDeleting old media files..."
+docker exec $site_container_name sh -c "rm -r $DJANGO_MEDIA_ROOT/*" # clear out old static files
 echo -e "Done!"
 
 # Blast in the backed up website files.
-echo -e -n "\t\tRestoring static files from backup..."
-docker cp $backup_dir/html/. $site_container_name:/var/www/html # upload backed up static files
+echo -e -n "\t\tRestoring media files from backup..."
+docker cp $backup_dir/media/. $site_container_name:$DJANGO_MEDIA_ROOT # upload backed up static files
 echo -e "Done!"
 
 # Update file permissions to give ownership to www-data.
-echo -e -n "\t\tUpdating file permissions to give ownership of /var/www/html to www-data:www-data..."
-docker exec $site_container_name sh -c "chown -R www-data:www-data /var/www/html"
+echo -e -n "\t\tUpdating file permissions to give ownership of $DJANGO_MEDIA_ROOT to www-data:www-data..."
+docker exec $site_container_name sh -c "chown -R www-data:www-data $DJANGO_MEDIA_ROOT"
 echo -e "Done!"
 
 # Stop the site container if we started it just for the restore.
@@ -96,10 +96,7 @@ if [ $site_container_already_started == "false" ]; then
 fi
 
 ## Upload Database Content
-db_container_name=$(docker ps -a --filter name=".*$website_name-wordpress-db.*" --format "{{.Names}}")
-db_env_file=$(dirname "$0")/../wordpress/.env.$website_name
-source $db_env_file # load database credentials
-echo -e "\tLoaded database credentials from $db_env_file."
+db_container_name=$(docker ps -a --filter name=".*$docker_prefix-db.*" --format "{{.Names}}")
 echo -e "\tRestoring database content to $db_container_name..."
 
 # Start the database container if it's not running yet.
@@ -116,13 +113,13 @@ fi
 
 # Restore the database from the backup.
 echo -e "\t\tRestoring database from backup..."
-mysql_dump=$backup_dir/APP-DATA.SQL
+postgres_dump=$backup_dir/APP-DATA.SQL
 # For some reason I can't restore directly into the docker container from a local file, I need to copy it into the container first...
-docker cp $mysql_dump $db_container_name:/tmp/APP-DATA.SQL
-docker exec $db_container_name sh -c "mysql --user=root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < /tmp/APP-DATA.SQL"
+docker cp $postgres_dump $db_container_name:/tmp/APP-DATA.SQL
+docker exec $db_container_name sh -c "psql --username=$POSTGRES_USER $POSTGRES_DB < /tmp/APP-DATA.SQL"
 # TODO: The line below doesn't work? Maybe something with relative paths.
-# docker exec $db_container_name mysql --user=root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < $mysql_dump
-echo -e "\t\t\tImported database $MYSQL_DATABASE from MySQL dump file $mysql_dump"
+# docker exec $db_container_name mysql --user=root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < $postgres_dump
+echo -e "\t\t\tImported database $MYSQL_DATABASE from Postgres dump file $postgres_dump"
 echo -e "\t\t\tDone!"
 
 # Stop the database container if we started it just for the backup.
@@ -142,4 +139,4 @@ if [ $untarred_backup == "true" ]; then
     echo -e "Done!"
 fi
 
-echo -e "\tWordpress website restore complete."
+echo -e "\tDjango website restore complete."
