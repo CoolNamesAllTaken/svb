@@ -48,8 +48,3 @@ def news_editor(request):
         'article_form': article_form,
     }
     return render(request, 'news_editor.html', context=context)
-
-
-def account(request, account_number=None):
-    context = {}
-    return render(request, "account.html", context)

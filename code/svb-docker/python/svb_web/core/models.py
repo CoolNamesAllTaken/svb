@@ -24,7 +24,7 @@ class Account(models.Model):
         "AccountHolder",
         on_delete=models.CASCADE # delete Account when associated AccountHolder is deleted
     )
-    interest_rate = models.FloatField()
+    interest_rate = models.FloatField(default=0.0) # 0.01 = 1%; default to 0 cuz WE decide when you get interest
     # Anchor Events:
     # - Interest rate changed.
     # - Cendy deposited into account.
@@ -47,6 +47,8 @@ class NewsArticle(models.Model):
     headline = models.CharField(max_length=128, unique=True)  # "Shrinkflation: King Size Candy 20% Smaller"
     author = models.ForeignKey('NewsAuthor', on_delete=models.RESTRICT)
     date_published = models.DateTimeField(blank=True, null=True)
+    preview = models.TextField(blank=True, null=True)  # "Candy companies are shrinking their products to save money. Is this a good thing?"
+    body = models.TextField(blank=True, null=True)  # "Avid trick-or-treaters know the golden rule of treating: bigger is always better. <paragraphs of drivel>"
 
     def __str__(self):
         return f'"{self.headline}" by {self.author.name}'
