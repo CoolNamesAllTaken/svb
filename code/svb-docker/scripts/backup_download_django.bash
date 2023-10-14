@@ -12,14 +12,14 @@
 # Example Usage:
 #   backup_download_wordpress johnmcnelly
 #
-# NOTE: This script requires the volumes being backed up to be mounted to a vontainer. Containers
+# NOTE: This script requires the volumes being backed up to be mounted to a container. Containers
 # do not need to be running for the backup to run successfully.
 ####################################################################################################
 
 echo "Creating Django website backup..."
 website_name="svb"
 docker_prefix=svb-docker
-env_file=../.env.$website_name
+env_file=$(dirname "$0")/../.env.$website_name
 
 source $env_file
 echo -e "\tLoaded environment file $env_file."

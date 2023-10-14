@@ -1,17 +1,16 @@
 #!/bin/bash
 
 ####################################################################################################
-# backup_restore_wordpress
+# backup_restore_django
 # 
 # This script restores a wordpress instance to a backed up version of its static files and database.
 #
 # Args:
-#   website_name    Name of the website used as a base for container names, etc.
-#   backup_name     Directory where the backup is stored. Static files should be in backup_dir/html,
+#   backup_name     Directory where the backup is stored. Media files should be in backup_dir/media,
 #                   and database should be in backup_dir/APP-DATA.SQL.
 #
 # Example Usage:
-#   bash scripts/backup_restore_wordpress.bash johnmcnelly backups/johnmcnelly_backup_2023-08-13_18h24m34s
+#   bash scripts/backup_restore_django.bash backups/johnmcnelly_backup_2023-08-13_18h24m34s
 #
 # NOTE: This script requires the volumes being restored to be mounted to a vontainer. Containers do
 # not need to be running for the restore to run successfully.
@@ -22,20 +21,21 @@ color_red='\033[0;31m'
 color_nc='\033[0m' # No Color
 
 echo "Restoring Wordpress website from backup..."
-website_name=$1 # first positional argument is website name, e.g. johnmcnelly
-backup_name=$2
+website_name=svb # first positional argument is website name, e.g. johnmcnelly
+docker_prefix=svb-docker
+env_file=$(dirname "$0")/../.env.$website_name
+
+source $env_file
+echo -e "\tLoaded environment file $env_file."
+
+backup_name=$1
 echo "backup_dir=$backup_name"
-if [ $website_name == "" ]; then
-    echo -e "\t${color_red}Missing required argument, please provide website name.${color_nc}"
-    exit
-elif [ ! -e $backup_name ]; then
+if [ ! -e $backup_name ]; then
     echo -e "\t${color_red}Backup directory or file $(pwd)/$backup_name does not exist, please provide a valid backup.${color_nc}"
     exit
 fi
 echo -e "\tWebsite Name: $website_name"
 echo -e "\tBackup Directory or File: $backup_name"
-
-docker_prefix=svb-docker
 
 ## Un-archive the backup if it's a .tar.gz file.
 if [[ $backup_name == *.tar.gz ]]; then
@@ -74,7 +74,8 @@ fi
 # Docker defaults to running in /var/www/html.
 # Need to pass in "rm -r *" as a string so it doesn't expand to pattern in current directory outside container.
 echo -e -n "\t\tDeleting old media files..."
-docker exec $site_container_name sh -c "rm -r $DJANGO_MEDIA_ROOT/*" # clear out old static files
+echo $DJANGO_MEDIA_ROOT
+docker exec $site_container_name sh -c "rm -r $DJANGO_MEDIA_ROOT" # clear out old static files
 echo -e "Done!"
 
 # Blast in the backed up website files.
