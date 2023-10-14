@@ -1,0 +1,19 @@
+.tickets-window {
+    background-color: black;
+    color: white;
+    font-size: xx-large;
+    font-family: sans-serif;
+    padding: 10px;
+}
+
+.tickets-window th {
+    background-color: grey;
+    color: white;
+    border: 5px solid black;
+    padding: 10px;
+}
+
+.tickets-window td {
+    text-align: center;
+}
+
