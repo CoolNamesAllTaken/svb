@@ -34,8 +34,15 @@ Enter the docker container running the Django app: `docker compose exec site bas
 Useful commands once you're there:
 ```bash
 python manage.py createsuperuser # Don't use this, we've already run it.
+python manage.py makemigrations # Run this before migrations.
 python manage.py migrate # Migrates databases with new models etc.
 ```
+
+## Creating New Models
+1. Create the model in `models.py`.
+2. Import the model into relevant other places.
+3. Register the model in `admin.py` to allow messing around with them in the django admin page.
+4. Run `makemigations` and `migrate` with `manage.py`.
 
 ## References
 * [Tutorial: Setting up Django with PostgreSQL database](https://stackpython.medium.com/how-to-start-django-project-with-a-database-postgresql-aaa1d74659d8)

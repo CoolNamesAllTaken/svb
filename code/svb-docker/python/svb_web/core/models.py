@@ -1,28 +1,39 @@
 from django.db import models
-import datetime
+from datetime import date
 
 
 class IdCardPrintJob(models.Model):
     pass
 
 
-class AccountHolder(models.Model):
-    account_holder_number = models.AutoField(primary_key=True)
+class Customer(models.Model):
+    customer_id = models.CharField(default="TBA", max_length=6, primary_key=True)
     first_name = models.CharField(default="Edween")
     costume = models.CharField(default="Founder")
-    referrer_account_holder = models.ForeignKey(
-        "AccountHolder",
-        blank=True,
-        null=True,
+    referrer_customer_id = models.ForeignKey(
+        "Customer",
+        blank=True, # allow empty fields in forms
+        null=True, # allow NULL values in storage
         on_delete=models.SET_NULL # make referrer field null if the referrer AccountHolder gets deleted
     )
 
+def get_new_customer_id(first_name, costume):
+    """
+    @brief Generates a new customer ID based on name, costume, sequential order. Used by forms to generate new
+    customer IDs as part of a cleaning function.
+    """
+    costume_name_prefix = first_name[0] + costume[0] # First letter of first name and costume name.
+    date_code = f"{date.today().year % 100}{date.today().day}"
+    customer_counter = Customer.objects.filter(issued_date=date.today()).count()
+    return f"{costume_name_prefix}{date_code}{customer_counter}" # this will break something after 9999 licenses in one day!
 
 class Account(models.Model):
     account_number = models.AutoField(primary_key=True)
-    account_holder = models.ForeignKey(
-        "AccountHolder",
-        on_delete=models.CASCADE # delete Account when associated AccountHolder is deleted
+    customer = models.ForeignKey(
+        "Customer",
+        # Don't allow blank since forms creating an account must specify a customer.
+        null=True, # allow NULL values in storage
+        on_delete=models.CASCADE # delete Account when associated Customer is deleted
     )
     interest_rate = models.FloatField(default=0.0) # 0.01 = 1%; default to 0 cuz WE decide when you get interest
     # Anchor Events:
