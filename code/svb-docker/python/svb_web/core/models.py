@@ -7,7 +7,9 @@ class IdCardPrintJob(models.Model):
 
 
 class Customer(models.Model):
-    customer_id = models.CharField(default="TBA", max_length=6, primary_key=True)
+    kCustomerIdMaxLength = 12
+
+    customer_id = models.CharField(default="TBA", max_length=kCustomerIdMaxLength, primary_key=True)
     first_name = models.CharField(default="Edween")
     costume = models.CharField(default="Founder")
     referrer_customer_id = models.ForeignKey(
@@ -16,16 +18,22 @@ class Customer(models.Model):
         null=True, # allow NULL values in storage
         on_delete=models.SET_NULL # make referrer field null if the referrer AccountHolder gets deleted
     )
+    joined_date = models.DateField(default=date.today)
+    security_candy = models.CharField(default="")
 
 def get_new_customer_id(first_name, costume):
     """
     @brief Generates a new customer ID based on name, costume, sequential order. Used by forms to generate new
     customer IDs as part of a cleaning function.
+    @param[in] first_name First name of the customer.
+    @param[in] costume Name of the customer's costume.
     """
+    print(f"get_new_customer_id with first_name={first_name} costume={costume}")
     costume_name_prefix = first_name[0] + costume[0] # First letter of first name and costume name.
-    date_code = f"{date.today().year % 100}{date.today().day}"
-    customer_counter = Customer.objects.filter(issued_date=date.today()).count()
-    return f"{costume_name_prefix}{date_code}{customer_counter}" # this will break something after 9999 licenses in one day!
+    print(f"costume_name_prefix={costume_name_prefix}")
+    date_code = f"{date.today().year % 100}{date.today().month:0>2}{date.today().day}" # YYMMDD
+    customer_counter = Customer.objects.filter(joined_date=date.today()).count()
+    return f"{costume_name_prefix}{date_code}{customer_counter:0>4}" # this will break something after 9999 licenses in one day!
 
 class Account(models.Model):
     account_number = models.AutoField(primary_key=True)
