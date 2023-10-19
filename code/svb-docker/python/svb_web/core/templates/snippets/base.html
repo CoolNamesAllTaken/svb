@@ -10,6 +10,6 @@
       <div>{{ message }}</div>
     {% endfor %}
     {% block content %} {% endblock content %}
-    {% include "./snippets/news_feed.html" with articles=articles show_editor_fields=False %}
+    {% include "../snippets/news_feed.html" with articles=articles show_editor_fields=False %}
   </body>
 </html>
