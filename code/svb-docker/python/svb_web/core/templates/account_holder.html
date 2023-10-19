@@ -1,0 +1,11 @@
+{% extends "internal_template.html" %}
+{% load static %}
+{% block content %}
+<div style="padding: 15px">
+<h1>Welcome, {{ account_holder.first_name }}!</h1>
+<h2>Your accounts</h2>
+{% for account in account_holder.account_set.all %}
+    <a href="/account/{{ account.account_number }}">{{ account.account_number }}</a>
+{% endfor %}
+</div>
+{% endblock content %}

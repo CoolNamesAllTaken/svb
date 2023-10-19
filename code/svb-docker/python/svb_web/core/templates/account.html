@@ -1,1 +1,7 @@
-<h1>Hellowwuworld</h1>
+{% extends "internal_template.html" %}
+{% load static %}
+{% block content %}
+<div style="padding: 15px">
+<h1>Account {{ account.account_number }}</h1>
+<p><a href="/account_holder/{{account.account_holder.account_holder_number}}">Return to accounts overview</a></p>
+{% endblock content %}
