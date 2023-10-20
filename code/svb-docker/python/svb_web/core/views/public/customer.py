@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 import core.models
 
 # Create your views here.
-def account(request, account_number=None):
+def view_accounts(request, customer_id=None):
     context = {}
     if account_number:
         account = get_object_or_404(core.models.Account, account_number=account_number)
