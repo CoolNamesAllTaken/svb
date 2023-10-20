@@ -9,6 +9,15 @@
 {% endcomment %}
 {% for article in articles %}
   <div class="article">
+    <div class="headline">{{ article.headline }}</div>
+    <div class="author name">{{ article.author.name }}</div>
+    <div class="author title">{{ article.author.title }}</div>
+    {% if article.preview is not None %}
+      <div class="preview">{{article.preview}}</div>
+    {% endif %}
+    {% if article.body is not None %}
+      <a href="/article/{{ article.headline }}">Learn More</a>
+    {% endif %}
     {% if show_editor_fields %}
       {% if not article.is_published %}
         <div>
