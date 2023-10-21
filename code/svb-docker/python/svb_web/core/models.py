@@ -67,3 +67,25 @@ class NewsArticle(models.Model):
     @property
     def is_published(self):
         return self.date_published is not None and datetime.datetime.now() > self.date_published
+
+class ReceiptPrinter(models.Model):
+    ip_address = models.GenericIPAddressField()
+    location = models.CharField(max_length=40, unique=True)
+
+    def __init__(self):
+        import escpos.printer
+        self._client = escpos.printer.Network(self.ip_address)
+
+    def __str__(self):
+        return f"Receipt Printer at {self.location}"
+
+    def print_deposit_receipt(self, account: Account) -> None:
+        self._client.open()
+        self._client.text(account.customer.first_name))
+        self._client.text(account.account_number)
+        self._client.qr(account.)
+    
+    def print_withdrawal_receipt(self, account: Account) -> None:
+        self._client.open()
+
+
