@@ -43,15 +43,24 @@ class Account(models.Model):
         null=True, # allow NULL values in storage
         on_delete=models.CASCADE # delete Account when associated Customer is deleted
     )
-    interest_rate = models.FloatField(default=0.0) # 0.01 = 1%; default to 0 cuz WE decide when you get interest
+    # Account balance at current timestamp can be calculated from previous anchor event
+    # timestamp and anchor event account balance.
+
+    
+class AnchorEvent(models.Model):
     # Anchor Events:
+    # - Account created.
     # - Interest rate changed.
-    # - Cendy deposited into account.
+    # - Candy deposited into account.
     # - Candy withdrawn from account.
-    #
-    # Account balance at current timestamp can be calculatecd from previous anchor event timestamp and anchor event account balance.
-    last_anchor_event_timestamp = models.DateTimeField(auto_now=True) # timestamp of last anchor event
-    last_anchor_event_balance = models.DecimalField(decimal_places=3, max_digits=10) # account balance immediately after last anchor event
+    account = models.ForeignKey(
+        "Account",
+        on_delete=models.CASCADE # delete AccountTransaction when associated Account is deleted
+    )
+    category = models.CharField(max_length=64, blank=True, null=True)  # deposit, withdrawal, interest rate update
+    timestamp = models.DateTimeField(auto_now=True)
+    balance = models.DecimalField(decimal_places=3, max_digits=10) # balance immediately after event
+    interest_rate = models.FloatField(default=0.0) # 0.01 = 1%; default to 0 cuz WE decide when you get interest
 
 
 class NewsAuthor(models.Model):
