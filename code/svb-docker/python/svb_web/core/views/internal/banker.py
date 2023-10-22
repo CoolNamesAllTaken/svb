@@ -42,16 +42,18 @@ def lookup_customer(request, customer_id=None):
     return render(request, "internal/lookup_customer.html", context)
 
 
-@login_required
+# @login_required
 def create_customer_from_form(form):
     """
     @brief Helper function that allows creation of a Customer object from a CustomerForm.
+    @retval Customer that was created (with generated customer_id).
     """
-    form.save() # Update the Customer model in the database with new info.
+    customer = form.save() # Update the Customer model in the database with new info.
 
     # TODO: Build and save debit card.
-    customer = get_object_or_404(Customer, pk=form.cleaned_data['customer_id'])
     create_debit_card(customer)
+
+    return customer
 
 
 @login_required
@@ -81,10 +83,10 @@ def edit_customer(request, customer_id=None):
         # Check if the form is valid.
         if form.is_valid():
             # Process the data in form.cleaned_data as required.
-            create_customer_from_form(form)
+            customer = create_customer_from_form(form)
 
             # Redirect to a new URL:
-            return HttpResponseRedirect('/internal/customer/edit/' + form.cleaned_data['customer_id'])
+            return HttpResponseRedirect('/internal/customer/edit/' + customer.customer_id)
     else:
         # GET (or other) = default form for creating a new customer.
         form = CustomerForm(instance=customer)

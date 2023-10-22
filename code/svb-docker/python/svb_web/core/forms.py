@@ -1,8 +1,8 @@
 from django import forms
-from core.models import Customer, Account, NewsArticle, NewsAuthor, get_new_customer_id
+from core.models import Customer, Account, NewsArticle, NewsAuthor
 
 class CustomerLookupForm(forms.Form):
-    customer_id = forms.CharField(max_length=Customer.kCustomerIdMaxLength)
+    customer_id = forms.CharField(max_length=Customer.CUSTOMER_ID_MAX_LENGTH)
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -20,23 +20,13 @@ class CustomerForm(forms.ModelForm):
         """
         cleaned_data = super().clean()
         if cleaned_data.get('customer_id') == "TBA":
+            # New customer is being created.
             if not cleaned_data.get('first_name') or cleaned_data.get('customer'):
                 # Return empty string as customer ID if something goes wrong to trigger a blank
                 # field error.
                 raise forms.ValidationError(
                     "Blank first name or costume not allowed!"
                 )
-            self.cleaned_data['customer_id'] = get_new_customer_id(
-                cleaned_data.get('first_name'),
-                cleaned_data.get('costume')
-            )
-            # except:
-            #     # Return empty string as customer ID if something goes wrong to trigger a blank
-            #     # field error.
-            #     raise forms.ValidationError(
-            #         "Blank first name or costume not allowed!"
-            #     )
-        # return cleaned_data.get('customer_id')
 
 
 class ArticleForm(forms.ModelForm):
