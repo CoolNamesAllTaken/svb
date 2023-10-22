@@ -1,10 +1,12 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from core.models import Customer
-
+from django.contrib.auth.decorators import login_required
 from core.forms import CustomerForm, CustomerLookupForm
 from core.utils.debit_card import *
 
+
+@login_required
 def lookup_customer(request, customer_id=None):
     """
     @brief View function that allows looking up of a Customer via a form submisison.
@@ -40,6 +42,7 @@ def lookup_customer(request, customer_id=None):
     return render(request, "internal/lookup_customer.html", context)
 
 
+@login_required
 def create_customer_from_form(form):
     """
     @brief Helper function that allows creation of a Customer object from a CustomerForm.
@@ -51,7 +54,7 @@ def create_customer_from_form(form):
     create_debit_card(customer)
 
 
-
+@login_required
 def edit_customer(request, customer_id=None):
     """
     @brief View function that allows editing of a Customer via a form submission.
@@ -101,10 +104,14 @@ def edit_customer(request, customer_id=None):
     }
     return render(request, "internal/edit_customer.html", context)
 
+
+@login_required
 def lookup_account(request):
     context = {}
     return render(request, "internal/lookup_account.html", context)
 
+
+@login_required
 def edit_account(request):
     context = {}
     return render(request, "internal/edit_account.html", context)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 
@@ -16,4 +16,5 @@ urlpatterns = [
     path('internal/customer/lookup/', views.internal.banker.lookup_customer, name='internal_lookup_customer'),
     path('internal/customer/edit/<str:customer_id>/', views.internal.banker.edit_customer, name='internal_edit_customer'),
     # path('internal/manage/')
+    path('internal/', include("django.contrib.auth.urls")),
 ]
