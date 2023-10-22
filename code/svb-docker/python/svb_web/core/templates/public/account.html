@@ -1,9 +1,9 @@
-{% extends "internal_template.html" %}
+{% extends "public/base.html" %}
 {% load static %}
 {% block content %}
 <div style="padding: 15px">
 <h1>Account {{ account.account_number }}</h1>
-<p><a href="/account_holder/{{account.account_holder.account_holder_number}}">Return to accounts overview</a></p>
+<p><a href="/customer/{{account.customer.customer_id}}">Return to accounts overview</a></p>
 <h2>Candy balance</h2>
 <p>Current interest rate: {{ last_anchor_event.interest_rate }}</p>
 <p><div style="display: inline;" id="candy-balance">Loading...</div>🍬</p>
