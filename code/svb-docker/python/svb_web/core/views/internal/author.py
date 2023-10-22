@@ -47,4 +47,4 @@ def news_editor(request):
         'author_form': author_form,
         'article_form': article_form,
     }
-    return render(request, 'news_editor.html', context=context)
+    return render(request, 'internal/news_editor.html', context=context)
