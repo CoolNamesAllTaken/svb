@@ -7,9 +7,32 @@ class IdCardPrintJob(models.Model):
 
 
 class Customer(models.Model):
-    kCustomerIdMaxLength = 12
+    def get_customer_id(self):
+        """
+        @brief Generates a new customer ID based on name, costume, sequential order. Used by the
+        overridden Customer.save() function when saving an instance of the Customer model.
+        """
+        print(f"get_customer_id with first_name={self.first_name} costume={self.costume}")
+        costume_name_prefix = self.first_name[0] + self.costume[0] # First letter of first name and costume name.
+        print(f"costume_name_prefix={costume_name_prefix}")
+        date_code = f"{date.today().year % 100}{date.today().month:0>2}{date.today().day}" # YYMMDD
+        customer_counter = Customer.objects.filter(joined_date=date.today()).count()
+        return f"{costume_name_prefix}{date_code}{customer_counter:0>4}" # this will break something after 9999 licenses in one day!
 
-    customer_id = models.CharField(default="TBA", max_length=kCustomerIdMaxLength, primary_key=True)
+    def save(self, *args, **kwargs):
+        """
+        @brief Override the model save function to create the new customer ID from first name, costume, and timestamp.
+        """
+        if self.customer_id == "TBA":
+            # Customer object is being saved for the first time.
+            self.customer_id = self.get_customer_id()
+        super(Customer, self).save(*args, **kwargs) # call super save function
+
+    # Constants
+    CUSTOMER_ID_MAX_LENGTH = 12 # maximum number of characters for customer_id
+
+    # Model Parameters
+    customer_id = models.CharField(default="TBA", max_length=CUSTOMER_ID_MAX_LENGTH, primary_key=True)
     first_name = models.CharField(default="Edween")
     costume = models.CharField(default="Founder")
     referrer_customer_id = models.ForeignKey(
@@ -21,19 +44,7 @@ class Customer(models.Model):
     joined_date = models.DateField(default=date.today)
     security_candy = models.CharField(default="")
 
-def get_new_customer_id(first_name, costume):
-    """
-    @brief Generates a new customer ID based on name, costume, sequential order. Used by forms to generate new
-    customer IDs as part of a cleaning function.
-    @param[in] first_name First name of the customer.
-    @param[in] costume Name of the customer's costume.
-    """
-    print(f"get_new_customer_id with first_name={first_name} costume={costume}")
-    costume_name_prefix = first_name[0] + costume[0] # First letter of first name and costume name.
-    print(f"costume_name_prefix={costume_name_prefix}")
-    date_code = f"{date.today().year % 100}{date.today().month:0>2}{date.today().day}" # YYMMDD
-    customer_counter = Customer.objects.filter(joined_date=date.today()).count()
-    return f"{costume_name_prefix}{date_code}{customer_counter:0>4}" # this will break something after 9999 licenses in one day!
+
 
 class Account(models.Model):
     account_number = models.AutoField(primary_key=True)
