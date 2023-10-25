@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import date
+import escpos.printer
 
 
 class IdCardPrintJob(models.Model):
@@ -69,15 +70,16 @@ class NewsArticle(models.Model):
         return self.date_published is not None and datetime.datetime.now() > self.date_published
 
 class ReceiptPrinter(models.Model):
-    ip_address = models.GenericIPAddressField()
-    location = models.CharField(max_length=40, unique=True)
-
-    def __init__(self):
-        import escpos.printer
-        self._client = escpos.printer.Network(self.ip_address)
+    ip_address = models.GenericIPAddressField(unique=True)
+    name = models.CharField(max_length=40, unique=True)
 
     def __str__(self):
-        return f"Receipt Printer at {self.location}"
+        return self.name
+
+    def connect_to_printer(self):
+        self._client = escpos.printer.Network(
+            self.ip_address
+        )
 
     def print_deposit_receipt(self, account: Account) -> None:
         self._client.open()
