@@ -1,11 +1,111 @@
 {% extends "public/base.html" %}
 {% load static %}
 {% block content %}
-<div style="padding: 15px">
 <h1>Welcome, {{ customer.first_name }}!</h1>
 <h2>Your accounts</h2>
-{% for account in customer.account_set.all %}
-    <a href="/account/{{ account.account_number }}">{{ account.account_number }}</a>
-{% endfor %}
+<div style="padding: 15px">
+    {% for account in accounts %}
+        <div class="accountDetail card" id="{{ account.account_number }}" style="margin: 10px; padding: 15px">
+            <h3 class="card-title">Account {{ account.account_number }}</h3>
+            <p class="card-subtitle"><a href="/account/{{account.account_number}}">See account details</a></p>
+            <div class="card-body">
+                <b>Candy balance</b>
+                <p>Current interest rate: {{ account.js_interest_rate }}</p>
+                <p><div style="display: inline;" id="candy-balance-{{ account.account_number }}">Loading...</div>🍬</p>
+                {{ account }}
+                <div id="account-balance-plot-{{ account.account_number }}"></div>
+            </div>
+        </div>
+    {% endfor %}
 </div>
+
+{{accounts|json_script:"accountsData"}}
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js" charset="utf-8"></script>
+<script>
+    ACCOUNTS_DATA = JSON.parse(document.getElementById("accountsData").textContent)
+    const accountBalancesOverTime = []
+    const futureAccountsGrowth = []
+    const COMPOUNDING_INTERVAL_SECONDS = 1800
+
+
+    function applyCallbacksToAccounts() {
+        console.log(ACCOUNTS_DATA)
+        const accountCards = document.getElementsByClassName("accountDetail")
+        for (account of accountCards) {
+            const accountDetails = ACCOUNTS_DATA.filter((entry) => (entry['account_number'].toString() === account.id))[0]
+            const accountNumber = accountDetails['account_number']
+            accountBalancesOverTime[accountNumber] = {
+                x: [],
+                y: [],
+                type: 'scatter'
+            }
+            futureAccountsGrowth[accountNumber] = {
+                x: [],
+                y: [],
+                type: 'scatter'
+            }
+            backfillAccountBalance(accountDetails)
+            setInterval(() => {
+                updateAccountBalance(accountDetails)
+            }, 1000)
+
+            Plotly.newPlot(`account-balance-plot-${accountNumber}`, [])
+        }
+    }
+
+
+    function convertTimestampToPlotlyDatetime(timestamp) {
+        const date = new Date(timestamp * 1000)
+        return date
+    }
+
+    function backfillAccountBalance(accountDetails) {
+        const accountNumber = accountDetails['account_number']
+        const lastAnchorEventTimestamp = accountDetails['js_last_anchor_event_timestamp']
+        const currentTimestamp = Date.now() / 1000
+        const timeIntervalsBeforePageLoad = (currentTimestamp - lastAnchorEventTimestamp) / COMPOUNDING_INTERVAL_SECONDS
+        for (let i = 0; i < timeIntervalsBeforePageLoad; i++) {
+            accountBalancesOverTime[accountNumber].x.push(convertTimestampToPlotlyDatetime(lastAnchorEventTimestamp + (i * COMPOUNDING_INTERVAL_SECONDS)))
+            accountBalancesOverTime[accountNumber].y.push(calculateAccountBalanceAtTime(accountDetails, lastAnchorEventTimestamp + (i * COMPOUNDING_INTERVAL_SECONDS)))
+        }
+        // TODO: actually backfill using entire anchor event history for the account
+    }
+
+    function calculateAccountBalanceAtTime(accountDetails, currentTimestamp) {
+        const accountNumber = accountDetails['account_number']
+        const interestRate = accountDetails['js_interest_rate']
+        const lastAnchorEventTimestamp = accountDetails['js_last_anchor_event_timestamp']
+        const lastAnchorEventBalance = accountDetails['js_last_anchor_event_balance']
+        const intervalsSinceAccountAnchorEvent = (currentTimestamp - lastAnchorEventTimestamp) / COMPOUNDING_INTERVAL_SECONDS
+        const currentAccountBalance = lastAnchorEventBalance * Math.exp(interestRate * intervalsSinceAccountAnchorEvent)
+        return currentAccountBalance
+    }
+
+    function projectFutureEarnings(accountDetails, secondsToProject) {
+        const accountNumber = accountDetails['account_number']
+        futureAccountsGrowth[accountNumber].x = []
+        futureAccountsGrowth[accountNumber].y = []
+        const currentTimestamp = Date.now() / 1000
+        const timeIntervalsToProject = ( secondsToProject / COMPOUNDING_INTERVAL_SECONDS)
+        for (let i = 0; i < timeIntervalsToProject; i++) {
+            futureAccountsGrowth[accountNumber].x.push(convertTimestampToPlotlyDatetime(currentTimestamp + (i * COMPOUNDING_INTERVAL_SECONDS)))
+            futureAccountsGrowth[accountNumber].y.push(calculateAccountBalanceAtTime(accountDetails, currentTimestamp + (i * COMPOUNDING_INTERVAL_SECONDS)))
+        }
+    }
+
+    function updateAccountBalance(accountDetails) {
+        const accountNumber = accountDetails['account_number']
+        const accountBalanceDisplay = document.getElementById(`candy-balance-${accountNumber}`)
+        const currentTimestamp = Date.now() / 1000
+        const accountBalance = calculateAccountBalanceAtTime(accountDetails, currentTimestamp)
+        accountBalanceDisplay.innerText = accountBalance
+        accountBalancesOverTime[accountNumber].x.push(convertTimestampToPlotlyDatetime(currentTimestamp))
+        accountBalancesOverTime[accountNumber].y.push(accountBalance)
+        projectFutureEarnings(accountDetails, 5400)
+        console.log(futureAccountsGrowth[accountNumber])
+        Plotly.newPlot(`account-balance-plot-${accountNumber}`, [accountBalancesOverTime[accountNumber], futureAccountsGrowth[accountNumber]])
+    }
+
+    applyCallbacksToAccounts()
+</script>
 {% endblock content %}
