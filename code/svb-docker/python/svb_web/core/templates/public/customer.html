@@ -1,19 +1,28 @@
 {% extends "public/base.html" %}
 {% load static %}
 {% block content %}
-<h1>Welcome, {{ customer.first_name }}!</h1>
-<h2>Your accounts</h2>
+<span style="background-color: #2f4a5f; width: 100%; display: block; color: white; padding: 1vh">
+    <h1>Welcome, {{ customer.first_name }}!</h1>
+</span>
 <div style="padding: 15px">
     {% for account in accounts %}
-        <div class="accountDetail card" id="{{ account.account_number }}" style="margin: 10px; padding: 15px">
-            <h3 class="card-title">Account {{ account.account_number }}</h3>
-            <p class="card-subtitle"><a href="/account/{{account.account_number}}">See account details</a></p>
-            <div class="card-body">
-                <b>Candy balance</b>
-                <p>Current interest rate: {{ account.js_interest_rate }}</p>
-                <p><div style="display: inline;" id="candy-balance-{{ account.account_number }}">Loading...</div>🍬</p>
-                {{ account }}
-                <div id="account-balance-plot-{{ account.account_number }}"></div>
+        <div class="accountDetail card shadow-sm, p-3 mb-5 bg-white rounded" id="{{ account.account_number }}" style="margin: 10px; padding: 15px">
+            <h1 class="card-title" style="font-size: 3vh;">Account {{ account.account_number }}</h1>
+            <div style="font-size: 2vh;">
+                <div class="card-body">
+                    <div class="card-text">
+                        <b>Candy balance</b>
+                        <div style="display: flex; flex-direction: row; font-size: 3vh;">
+                            <p>🍬<div style="font-weight: bold; color: #113148;"
+                                id="candy-balance-{{ account.account_number }}">Loading...</div></p>
+                        </div>
+                    </div>
+                    <div id="account-balance-plot-{{ account.account_number }}"></div>
+                    <div style="font-size: 2vh; margin: 1vh;">
+                        <a href="/account/{{account.account_number}}" style="color: #113148;">
+                            See account details</a>
+                        </div>
+                </div>
             </div>
         </div>
     {% endfor %}
@@ -26,6 +35,22 @@
     const accountBalancesOverTime = []
     const futureAccountsGrowth = []
     const COMPOUNDING_INTERVAL_SECONDS = 1800
+    const LAYOUT = {
+        font: {
+            size: 25,
+        },
+        xaxis: {
+            nticks: 5,
+        },
+        yaxis: {
+            nticks: 5,
+        },
+        legend: {
+            orientation: "h",
+            x: 0,
+            y: -0.5,
+        },
+    }
 
 
     function applyCallbacksToAccounts() {
@@ -37,12 +62,22 @@
             accountBalancesOverTime[accountNumber] = {
                 x: [],
                 y: [],
-                type: 'scatter'
+                name: 'History',
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: {
+                    color: "#113148",
+                }
             }
             futureAccountsGrowth[accountNumber] = {
                 x: [],
                 y: [],
-                type: 'scatter'
+                name: 'Projection',
+                type: 'scatter',
+                mode: 'lines+markers',
+                marker: {
+                    color: "#57c0fd",
+                }
             }
             backfillAccountBalance(accountDetails)
             setInterval(() => {
@@ -103,7 +138,10 @@
         accountBalancesOverTime[accountNumber].y.push(accountBalance)
         projectFutureEarnings(accountDetails, 5400)
         console.log(futureAccountsGrowth[accountNumber])
-        Plotly.newPlot(`account-balance-plot-${accountNumber}`, [accountBalancesOverTime[accountNumber], futureAccountsGrowth[accountNumber]])
+        Plotly.newPlot(`account-balance-plot-${accountNumber}`, [accountBalancesOverTime[accountNumber], futureAccountsGrowth[accountNumber]],
+                layout=LAYOUT,
+                {staticPlot: true}
+            )
     }
 
     applyCallbacksToAccounts()
