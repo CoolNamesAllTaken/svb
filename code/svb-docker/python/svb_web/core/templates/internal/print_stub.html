@@ -1,0 +1,15 @@
+<form action="{% url 'print_receipt' %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+        <legend><h1>Network Printers</H1></h1></legend>
+        {% for name in printer_names %}
+            <input type="radio" name="printer_name" value="{{ name }}">
+            <label>{{ name }}</label><br>
+        {% endfor %}
+        <label>Account ID:</label>
+        <input type="text" name="account_number"><br>
+        <label>Receipt Type:</label>
+        <input type="text" name="receipt_type">
+    </fieldset>
+    <input type="submit" value="PRINT">
+</form>

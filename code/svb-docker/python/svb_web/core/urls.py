@@ -12,4 +12,6 @@ urlpatterns = [
     path('internal/customer/edit/<str:customer_id>/', views.internal.banker.edit_customer, name='edit_customer'),
     # path('internal/account/lookup', views.internal.banker.lookup_account, name='lookup_account'),
     # path('internal/account/edit', views.internal.banker.edit_account, name='edit_account'),
+    path('internal/print_test', views.internal.print_test.print_test, name="print_test"),
+    path('internal/print_receipt', views.internal.print_receipt.print_receipt, name="print_receipt")
 ]
