@@ -8,7 +8,32 @@ class IdCardPrintJob(models.Model):
 
 
 class Customer(models.Model):
-    customer_id = models.CharField(default="TBA", max_length=6, primary_key=True)
+    def get_customer_id(self):
+        """
+        @brief Generates a new customer ID based on name, costume, sequential order. Used by the
+        overridden Customer.save() function when saving an instance of the Customer model.
+        """
+        print(f"get_customer_id with first_name={self.first_name} costume={self.costume}")
+        costume_name_prefix = self.first_name[0] + self.costume[0] # First letter of first name and costume name.
+        print(f"costume_name_prefix={costume_name_prefix}")
+        date_code = f"{date.today().year % 100}{date.today().month:0>2}{date.today().day}" # YYMMDD
+        customer_counter = Customer.objects.filter(joined_date=date.today()).count()
+        return f"{costume_name_prefix}{date_code}{customer_counter:0>4}" # this will break something after 9999 licenses in one day!
+
+    def save(self, *args, **kwargs):
+        """
+        @brief Override the model save function to create the new customer ID from first name, costume, and timestamp.
+        """
+        if self.customer_id == "TBA":
+            # Customer object is being saved for the first time.
+            self.customer_id = self.get_customer_id()
+        super(Customer, self).save(*args, **kwargs) # call super save function
+
+    # Constants
+    CUSTOMER_ID_MAX_LENGTH = 12 # maximum number of characters for customer_id
+
+    # Model Parameters
+    customer_id = models.CharField(default="TBA", max_length=CUSTOMER_ID_MAX_LENGTH, primary_key=True)
     first_name = models.CharField(default="Edween")
     costume = models.CharField(default="Founder")
     referrer_customer_id = models.ForeignKey(
@@ -17,16 +42,10 @@ class Customer(models.Model):
         null=True, # allow NULL values in storage
         on_delete=models.SET_NULL # make referrer field null if the referrer AccountHolder gets deleted
     )
+    joined_date = models.DateField(default=date.today)
+    security_candy = models.CharField(default="")
 
-def get_new_customer_id(first_name, costume):
-    """
-    @brief Generates a new customer ID based on name, costume, sequential order. Used by forms to generate new
-    customer IDs as part of a cleaning function.
-    """
-    costume_name_prefix = first_name[0] + costume[0] # First letter of first name and costume name.
-    date_code = f"{date.today().year % 100}{date.today().day}"
-    customer_counter = Customer.objects.filter(issued_date=date.today()).count()
-    return f"{costume_name_prefix}{date_code}{customer_counter}" # this will break something after 9999 licenses in one day!
+
 
 class Account(models.Model):
     account_number = models.AutoField(primary_key=True)
@@ -36,15 +55,24 @@ class Account(models.Model):
         null=True, # allow NULL values in storage
         on_delete=models.CASCADE # delete Account when associated Customer is deleted
     )
-    interest_rate = models.FloatField(default=0.0) # 0.01 = 1%; default to 0 cuz WE decide when you get interest
+    # Account balance at current timestamp can be calculated from previous anchor event
+    # timestamp and anchor event account balance.
+
+    
+class AnchorEvent(models.Model):
     # Anchor Events:
+    # - Account created.
     # - Interest rate changed.
-    # - Cendy deposited into account.
+    # - Candy deposited into account.
     # - Candy withdrawn from account.
-    #
-    # Account balance at current timestamp can be calculatecd from previous anchor event timestamp and anchor event account balance.
-    last_anchor_event_timestamp = models.DateTimeField(auto_now=True) # timestamp of last anchor event
-    last_anchor_event_balance = models.DecimalField(decimal_places=3, max_digits=10) # account balance immediately after last anchor event
+    account = models.ForeignKey(
+        "Account",
+        on_delete=models.CASCADE # delete AccountTransaction when associated Account is deleted
+    )
+    category = models.CharField(max_length=64, blank=True, null=True)  # deposit, withdrawal, interest rate update
+    timestamp = models.DateTimeField(auto_now=True)
+    balance = models.DecimalField(decimal_places=3, max_digits=10) # balance immediately after event
+    interest_rate = models.FloatField(default=0.0) # 0.01 = 1%; default to 0 cuz WE decide when you get interest
 
 
 class NewsAuthor(models.Model):

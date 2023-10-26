@@ -1,1 +1,54 @@
-<h1>Hellowwuworld</h1>
+{% extends "public/base.html" %}
+{% load static %}
+{% block content %}
+<div style="padding: 15px">
+<h1>Account {{ account.account_number }}</h1>
+<p><a href="/customer/{{account.customer.customer_id}}">Return to accounts overview</a></p>
+<h2>Candy balance</h2>
+<p>Current interest rate: {{ last_anchor_event.interest_rate }}</p>
+<p><div style="display: inline;" id="candy-balance">Loading...</div>🍬</p>
+{{ account }}
+<div id="account-balance-plot"></div>
+</div>
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js" charset="utf-8"></script>
+<script>
+    const INTEREST_RATE = {{ js_interest_rate }}
+    const LAST_ANCHOR_EVENT_BALANCE = {{ js_last_anchor_event_balance }}
+    const LAST_ANCHOR_EVENT_TIMESTAMP = {{ js_last_anchor_event_timestamp}}
+    const COMPOUNDING_INTERVAL_SECONDS = 1800
+
+    const accountBalanceOverTime = {        
+        x: [],
+        y: [],
+        type: 'scatter'
+    }
+
+    function backfillAccountBalance() {
+        const currentTimestamp = Date.now() / 1000
+        const timeIntervalsBeforePageLoad = (currentTimestamp - LAST_ANCHOR_EVENT_TIMESTAMP) / COMPOUNDING_INTERVAL_SECONDS
+        console.log(timeIntervalsBeforePageLoad)
+        // TODO: actually backfill using entire anchor event history for the account
+    }
+
+    function calculateAccountBalanceAtTime(currentTimestamp) {
+        const intervalsSinceAccountAnchorEvent = (currentTimestamp - LAST_ANCHOR_EVENT_TIMESTAMP) / COMPOUNDING_INTERVAL_SECONDS
+        const currentAccountBalance = LAST_ANCHOR_EVENT_BALANCE * Math.exp(INTEREST_RATE * intervalsSinceAccountAnchorEvent)
+        return currentAccountBalance
+    }
+
+    function updateAccountBalance() {
+        const accountBalanceDisplay = document.getElementById("candy-balance")
+        const currentTimestamp = Date.now() / 1000
+        const accountBalance = calculateAccountBalanceAtTime(currentTimestamp)
+        accountBalanceDisplay.innerText = accountBalance
+        accountBalanceOverTime.x.push(currentTimestamp)
+        accountBalanceOverTime.y.push(accountBalance)
+        Plotly.newPlot('account-balance-plot', [accountBalanceOverTime])
+    }
+
+    backfillAccountBalance()
+    setInterval(updateAccountBalance, 1000)
+
+    Plotly.newPlot('account-balance-plot', [accountBalanceOverTime])
+</script>
+{% endblock content %}
