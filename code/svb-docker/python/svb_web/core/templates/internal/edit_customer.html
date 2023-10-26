@@ -4,13 +4,15 @@
 <div class="container p-5">
     <div class="row">
         <div class="col-sm">
-            <h1>{{form_title}}</h1>
-            <div class="mt-2 mb-2 {{existing_id_banner_display}}">
+            <h1>{{ form_title }}</h1>
+            {% if customer_id != None %}
+            <div class="mt-2 mb-2">
                 <button class="btn btn-primary mt-3 mb-3" id="print-button">Print ID</button>
-                <a href="/internal/accounts/create" class="btn btn-secondary m-3">Create New Customer</a>
+                <a href="/internal/customer/create" class="btn btn-secondary m-3">Create New Customer</a>
             </div>
+            {% endif %}
             
-
+            <!-- <p> {{ form_message }} </p> -->
             <form enctype="multipart/form-data" action="" method="post">
                 {% csrf_token %}
                 <table style="table-layout: fixed; width: 100%; word-wrap: break-word">
