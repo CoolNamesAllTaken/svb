@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import date
+import escpos.printer
 
 
 class IdCardPrintJob(models.Model):
@@ -7,6 +8,13 @@ class IdCardPrintJob(models.Model):
 
 
 class Customer(models.Model):
+    def __str__(self) -> str:
+        """
+        @brief Override default tostring function so that it prints a nice ID string.
+        @retval customer_id as a string.
+        """
+        return self.customer_id
+
     def get_customer_id(self):
         """
         @brief Generates a new customer ID based on name, costume, sequential order. Used by the
@@ -35,7 +43,7 @@ class Customer(models.Model):
     customer_id = models.CharField(default="TBA", max_length=CUSTOMER_ID_MAX_LENGTH, primary_key=True)
     first_name = models.CharField(default="Edween")
     costume = models.CharField(default="Founder")
-    referrer_customer_id = models.ForeignKey(
+    referrer = models.ForeignKey(
         "Customer",
         blank=True, # allow empty fields in forms
         null=True, # allow NULL values in storage
@@ -95,3 +103,29 @@ class NewsArticle(models.Model):
     @property
     def is_published(self):
         return self.date_published is not None and datetime.datetime.now() > self.date_published
+
+class ReceiptPrinter(models.Model):
+    ip_address = models.GenericIPAddressField(unique=True)
+    name = models.CharField(max_length=40, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    def connect_to_printer(self):
+        self._client = escpos.printer.Network(
+            self.ip_address
+        )
+
+    def print_deposit_receipt(self, account: Account) -> None:
+        self._client.open()
+        self._client.text("deposit receipt")
+
+        self._client.cut()
+
+    def print_withdrawal_receipt(self, account: Account) -> None:
+        self._client.open()
+        self._client.text("withdraw receipt")
+
+        self._client.cut()
+
+
