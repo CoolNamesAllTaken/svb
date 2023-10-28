@@ -1,6 +1,6 @@
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
-
+from django.contrib.auth.decorators import login_required
 from core.models import ReceiptPrinter, Account
 
 def print_receipt(request):
