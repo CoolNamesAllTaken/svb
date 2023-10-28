@@ -6,5 +6,6 @@ def index(request):
         "num_ids_created": 0,
         "num_windows": 0,
         "wait_time": 0,
+        "id_card_image_data": None,
     }
     return render(request, "public/index.html", context)
