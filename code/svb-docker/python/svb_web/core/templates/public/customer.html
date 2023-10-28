@@ -133,11 +133,10 @@
         const accountBalanceDisplay = document.getElementById(`candy-balance-${accountNumber}`)
         const currentTimestamp = Date.now() / 1000
         const accountBalance = calculateAccountBalanceAtTime(accountDetails, currentTimestamp)
-        accountBalanceDisplay.innerText = accountBalance
+        accountBalanceDisplay.innerText = accountBalance.toPrecision(5)
         accountBalancesOverTime[accountNumber].x.push(convertTimestampToPlotlyDatetime(currentTimestamp))
         accountBalancesOverTime[accountNumber].y.push(accountBalance)
         projectFutureEarnings(accountDetails, 5400)
-        console.log(futureAccountsGrowth[accountNumber])
         Plotly.newPlot(`account-balance-plot-${accountNumber}`, [accountBalancesOverTime[accountNumber], futureAccountsGrowth[accountNumber]],
                 layout=LAYOUT,
                 {staticPlot: true}
