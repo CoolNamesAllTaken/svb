@@ -117,7 +117,8 @@ class ReceiptPrinter(models.Model):
 
     def print_withdrawal_receipt(self, account: Account) -> None:
         self._client.open()
-        self._client.text("withdraw recipt")
+        self._client.text("withdraw receipt")
+
         self._client.cut()
 
 
