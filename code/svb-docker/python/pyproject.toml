@@ -14,7 +14,17 @@ python-escpos = "^2.2.0"
 qrcode = "^7.4.2"
 pillow = "^10.1.0"
 pyyaml = "^6.0.1"
+pytest = "^7"
+pytest-django = "^4"
+
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "svb_web.settings"
+testpaths = [
+    "tests",
+]
