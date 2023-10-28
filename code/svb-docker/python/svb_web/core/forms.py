@@ -41,6 +41,10 @@ class CustomerForm(forms.ModelForm):
                 )
         return cleaned_data
 
+class AccountTransferForm(forms.Form):
+    
+    def clean(self):
+        pass
 
 class ArticleForm(forms.ModelForm):
     class Meta:

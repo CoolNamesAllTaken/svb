@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from core.models import Customer
 from django.contrib.auth.decorators import login_required
+from core.forms import CustomerLookupForm
 
 def lookup_accounts(request, customer_id=None):
     """
@@ -22,7 +23,7 @@ def lookup_accounts(request, customer_id=None):
             try:
                 customer = get_object_or_404(Customer, pk=customer_id)
                 # redirect to a new URL:
-                return HttpResponseRedirect('/internal/customer/edit/' + customer_id + '/')
+                return HttpResponseRedirect('/internal/accounts/edit/' + customer_id + '/')
             except:
                 message = "Customer ID {} not found!".format(customer_id)
         else:
@@ -35,4 +36,4 @@ def lookup_accounts(request, customer_id=None):
         'message': message
     }
     
-    return render(request, "internal/lookup_customer.html", context)
+    return render(request, "internal/lookup_accounts.html", context)
