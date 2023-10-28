@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from core.models import ReceiptPrinter, Account
 
+@login_required
 def print_receipt(request):
     # if not a visible view, maybe should fail silently?
     # if no choice selected, and press print (who is responsible for updating the form?)
