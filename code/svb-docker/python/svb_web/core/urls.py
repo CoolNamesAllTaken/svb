@@ -13,7 +13,7 @@ urlpatterns = [
     path('internal/', views.internal.common.index, name='internal_index'),
     path('internal/news_editor/', views.internal.author.news_editor),
     path('internal/print_test', views.internal.print_test.print_test, name="print_test"),
-    path('internal/print_receipt', views.internal.print_receipt.print_receipt, name="print_receipt")
+    path('internal/print_receipt', views.internal.print_receipt.print_receipt, name="print_receipt"),
     path('internal/customer/create/', views.internal.banker.edit_customer, name='internal_create_customer'),
     path('internal/customer/lookup/', views.internal.banker.lookup_customer, name='internal_lookup_customer'),
     path('internal/customer/edit/<str:customer_id>/', views.internal.banker.edit_customer, name='internal_edit_customer'),

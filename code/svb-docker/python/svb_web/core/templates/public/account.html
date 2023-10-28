@@ -23,10 +23,24 @@
         type: 'scatter'
     }
 
+    const futureAccountGrowth = {
+        x: [1],
+        y: [1],
+        type: 'scatter'
+    }
+
+    function convertTimestampToPlotlyDatetime(timestamp) {
+        const date = new Date(timestamp * 1000)
+        return date
+    }
+
     function backfillAccountBalance() {
         const currentTimestamp = Date.now() / 1000
         const timeIntervalsBeforePageLoad = (currentTimestamp - LAST_ANCHOR_EVENT_TIMESTAMP) / COMPOUNDING_INTERVAL_SECONDS
-        console.log(timeIntervalsBeforePageLoad)
+        for (let i = 0; i < timeIntervalsBeforePageLoad; i++) {
+            accountBalanceOverTime.x.push(convertTimestampToPlotlyDatetime(LAST_ANCHOR_EVENT_TIMESTAMP + (i * COMPOUNDING_INTERVAL_SECONDS)))
+            accountBalanceOverTime.y.push(calculateAccountBalanceAtTime(LAST_ANCHOR_EVENT_TIMESTAMP +  + (i * COMPOUNDING_INTERVAL_SECONDS)))
+        }
         // TODO: actually backfill using entire anchor event history for the account
     }
 
@@ -36,19 +50,31 @@
         return currentAccountBalance
     }
 
+    function projectFutureEarnings(secondsToProject) {
+        futureAccountGrowth.x = []
+        futureAccountGrowth.y = []
+        const currentTimestamp = Date.now() / 1000
+        const timeIntervalsToProject = ( secondsToProject / COMPOUNDING_INTERVAL_SECONDS)
+        for (let i = 0; i < timeIntervalsToProject; i++) {
+            futureAccountGrowth.x.push(convertTimestampToPlotlyDatetime(currentTimestamp + (i * COMPOUNDING_INTERVAL_SECONDS)))
+            futureAccountGrowth.y.push(calculateAccountBalanceAtTime(currentTimestamp + (i * COMPOUNDING_INTERVAL_SECONDS)))
+        }
+    }
+
     function updateAccountBalance() {
         const accountBalanceDisplay = document.getElementById("candy-balance")
         const currentTimestamp = Date.now() / 1000
         const accountBalance = calculateAccountBalanceAtTime(currentTimestamp)
         accountBalanceDisplay.innerText = accountBalance
-        accountBalanceOverTime.x.push(currentTimestamp)
+        accountBalanceOverTime.x.push(convertTimestampToPlotlyDatetime(currentTimestamp))
         accountBalanceOverTime.y.push(accountBalance)
-        Plotly.newPlot('account-balance-plot', [accountBalanceOverTime])
+        projectFutureEarnings(5400)
+        Plotly.newPlot('account-balance-plot', [accountBalanceOverTime, futureAccountGrowth])
     }
 
     backfillAccountBalance()
     setInterval(updateAccountBalance, 1000)
 
-    Plotly.newPlot('account-balance-plot', [accountBalanceOverTime])
+    Plotly.newPlot('account-balance-plot', [])
 </script>
 {% endblock content %}
