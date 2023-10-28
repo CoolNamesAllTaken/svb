@@ -19,12 +19,24 @@
       <a href="/article/{{ article.headline }}">Learn More</a>
     {% endif %}
     {% if show_editor_fields %}
-      <div>Publish time: {{ article.date_published }}</div>
       {% if not article.is_published %}
+        <div>
+          {% if article.date_published is None %}
+            <b>Not yet scheduled!</b>
+          {% else %}
+            <b>Scheduled for: {{ article.date_published }}</b>
+          {% endif %}
+        </div>
         <button type="submit" name="publish" value="{{ article.headline }}">Publish Now</button>
       {% else %}
+        <div>
+          <b>Published at: {{ article.date_published }}</b>
+        </div>
         <button type="submit" name="unpublish" value="{{ article.headline }}">Unpublish</button>
       {% endif %}
     {% endif %}
+    <div class="headline">{{ article.headline }}</div>
+    <div class="author name">{{ article.author.name }}</div>
+    <div class="author title">{{ article.author.title }}</div>
   </div>
 {% endfor %}

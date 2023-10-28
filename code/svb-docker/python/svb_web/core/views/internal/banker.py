@@ -48,7 +48,18 @@ def create_customer_from_form(form):
     @brief Helper function that allows creation of a Customer object from a CustomerForm.
     @retval Customer that was created (with generated customer_id).
     """
-    customer = form.save() # Update the Customer model in the database with new info.
+    if form.is_valid():
+        # Manually override the customer fields with cleaned fields since calling form.is_valid() and form.save() on their own
+        # does not actually save the form with cleaned data, just with raw data.
+        cleaned_data = form.clean()
+        customer, created = Customer.objects.get_or_create(pk=cleaned_data['customer_id'])
+        customer.first_name = cleaned_data['first_name']
+        customer.costume = cleaned_data['costume']
+        customer.referrer = cleaned_data['referrer']
+        customer.joined_date = cleaned_data['joined_date']
+        customer.security_candy = cleaned_data['security_candy']
+        customer.save() # Caitlin loves John a lot <3
+        # Update the Customer model in the database with new info.
 
     # TODO: Build and save debit card.
     create_debit_card(customer)
@@ -61,7 +72,7 @@ def edit_customer(request, customer_id=None):
     """
     @brief View function that allows editing of a Customer via a form submission.
     """
-    print(f"edit_customer with customer_id={customer_id}")
+    # form_message = "" # use this field for indicating errors
     if customer_id:
         # Editing an existing customer.
         customer = get_object_or_404(Customer, pk=customer_id)
@@ -72,14 +83,15 @@ def edit_customer(request, customer_id=None):
         customer=None
         form_title = "Create New Customer"
         submit_button_label = "Create"
+
     if request.method == 'POST':
         # POST = submitting a form to update customer info.
-        # Creat a form instance and populate it with data from the request (binding).
+        # Create a form instance and populate it with data from the request (binding).
         form = CustomerForm(request.POST, request.FILES, instance=customer)
         # Not for human consumption, since the only way the user sees this form is if the form is not valid even though it was POSTed.
         # Disable the sensitive fields anyways, just to be safe.
         form.fields['customer_id'].disabled = True
-
+        
         # Check if the form is valid.
         if form.is_valid():
             # Process the data in form.cleaned_data as required.
@@ -87,20 +99,23 @@ def edit_customer(request, customer_id=None):
 
             # Redirect to a new URL:
             return HttpResponseRedirect('/internal/customer/edit/' + customer.customer_id)
+       
     else:
         # GET (or other) = default form for creating a new customer.
-        form = CustomerForm(instance=customer)
+        if customer:
+            referrer_str_initial = customer.referrer
+        else:
+            referrer_str_initial = ""
+        form = CustomerForm(
+            instance=customer, 
+            initial={'referrer_str': referrer_str_initial}
+        )
         form.fields['customer_id'].disabled = True
-
-    if customer_id:
-        # Customer already exists, enable print function and maybe other things.
-        pass
-    else:
-        pass
 
     context = {
         'form': form,
         'form_title': form_title,
+        # 'form_message': form_message,
         'submit_button_label': submit_button_label,
         'customer_id': customer_id,
     }

@@ -1,13 +1,20 @@
 from django import forms
 from core.models import Customer, Account, NewsArticle, NewsAuthor
+from django.core.exceptions import ObjectDoesNotExist # used in CustomerForm
 
 class CustomerLookupForm(forms.Form):
     customer_id = forms.CharField(max_length=Customer.CUSTOMER_ID_MAX_LENGTH)
 
 class CustomerForm(forms.ModelForm):
+    referrer_str = forms.CharField(
+        label="Referrer",
+        max_length=Customer.CUSTOMER_ID_MAX_LENGTH, 
+        required=False,
+    )
+
     class Meta:
         model = Customer
-        fields = '__all__'
+        exclude = ['referrer']
     
     def clean(self):
         """
@@ -19,14 +26,20 @@ class CustomerForm(forms.ModelForm):
         primary key.
         """
         cleaned_data = super().clean()
-        if cleaned_data.get('customer_id') == "TBA":
-            # New customer is being created.
-            if not cleaned_data.get('first_name') or cleaned_data.get('customer'):
-                # Return empty string as customer ID if something goes wrong to trigger a blank
-                # field error.
+
+        # Convert the referrer_str into a proper ForeignKey.
+        referrer_str = cleaned_data.get('referrer_str')
+        # cleaned_data['referrer'] = Customer.objects.get(pk=referrer_str)
+        if referrer_str == "":
+            cleaned_data['referrer'] = None
+        else:
+            try:
+                cleaned_data['referrer'] = Customer.objects.get(pk=referrer_str)
+            except ObjectDoesNotExist:
                 raise forms.ValidationError(
-                    "Blank first name or costume not allowed!"
+                    f"Can't find referring Customer with customer_id {referrer_str}"
                 )
+        return cleaned_data
 
 
 class ArticleForm(forms.ModelForm):

@@ -1,19 +1,16 @@
 [tool.poetry]
-name = "svb"
+name = "print-server"
 version = "0.1.0"
 description = ""
 authors = ["John McNelly <jkailimcnelly@gmail.com>"]
 readme = "README.md"
+packages = [{include = "print_server"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-django = "^4.2.6"
-python-dotenv = "^1.0.0"
+pywin32 = "^306"
 psycopg2 = "^2.9.9"
-python-escpos = "^2.2.0"
-qrcode = "^7.4.2"
-pillow = "^10.1.0"
-pyyaml = "^6.0.1"
+
 
 [build-system]
 requires = ["poetry-core"]
