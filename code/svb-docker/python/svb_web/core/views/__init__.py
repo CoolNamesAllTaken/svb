@@ -9,3 +9,4 @@ from .internal.display import *
 
 from .internal.print_receipt import *
 from .internal.print_test import *
+from .internal.populate_db import *
