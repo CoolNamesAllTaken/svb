@@ -20,5 +20,11 @@ def overview(request, customer_id=None):
     context = {}
     if customer_id:
         customer = get_object_or_404(core.models.Customer, customer_id=customer_id)
-        context = {"customer": customer}
+        context = {"customer": customer,
+                   "accounts": [{
+                                    "account_number": account.account_number,
+                                    "js_interest_rate": core.models.AnchorEvent.objects.filter(account=account).latest("timestamp").interest_rate,
+                                    "js_last_anchor_event_balance": core.models.AnchorEvent.objects.filter(account=account).latest("timestamp").balance,
+                                    "js_last_anchor_event_timestamp": core.models.AnchorEvent.objects.filter(account=account).latest("timestamp").timestamp.timestamp()
+                        } for account in customer.account_set.all()]}
     return render(request, "public/customer.html", context)
