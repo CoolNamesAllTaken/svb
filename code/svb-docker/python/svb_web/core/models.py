@@ -8,6 +8,13 @@ class IdCardPrintJob(models.Model):
 
 
 class Customer(models.Model):
+    def __str__(self) -> str:
+        """
+        @brief Override default tostring function so that it prints a nice ID string.
+        @retval customer_id as a string.
+        """
+        return self.customer_id
+
     def get_customer_id(self):
         """
         @brief Generates a new customer ID based on name, costume, sequential order. Used by the
@@ -36,7 +43,7 @@ class Customer(models.Model):
     customer_id = models.CharField(default="TBA", max_length=CUSTOMER_ID_MAX_LENGTH, primary_key=True)
     first_name = models.CharField(default="Edween")
     costume = models.CharField(default="Founder")
-    referrer_customer_id = models.ForeignKey(
+    referrer = models.ForeignKey(
         "Customer",
         blank=True, # allow empty fields in forms
         null=True, # allow NULL values in storage

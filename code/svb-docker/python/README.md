@@ -7,4 +7,4 @@ This is where all the Python files go for running the Django website and backend
 ## Poetry
 1. Start interactive shell in the `python` folder with `poetry shell`.
 2. Add relevant packages with `poetry add <package name>`.
-3. Update `requirements.txt` with `poetry export -f requirements.txt --output requirements.txt` or  `pip freeze > requirements.txt`.
+3. Update `requirements.txt` with `pip freeze > requirements.txt`.

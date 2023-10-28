@@ -1,8 +1,13 @@
 asgiref==3.7.2
+colorama==0.4.6
 Django==4.2.6
+Pillow==10.1.0
 psycopg2==2.9.9
+pypng==0.20220715.0
 python-dotenv==1.0.0
 python-escpos==2.2.0
+PyYAML==6.0.1
+qrcode==7.4.2
 sqlparse==0.4.4
 typing_extensions==4.8.0
 tzdata==2023.3
