@@ -111,7 +111,8 @@ class ReceiptPrinter(models.Model):
 
     def print_deposit_receipt(self, account: Account) -> None:
         self._client.open()
-        self._client.text("deposit receipit")
+        self._client.text("deposit receipt")
+
         self._client.cut()
 
     def print_withdrawal_receipt(self, account: Account) -> None:
