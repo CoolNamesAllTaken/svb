@@ -16,6 +16,7 @@ Windows: Install Git Bash.
 Run migrations!
 `docker compose -f compose.yml exec site python manage.py makemigrations`
 Then `docker compose -f compose.yml exec site python manage.py migrate`
+Be sure to commit your migrations with your code!
 
 ## Where is everything?
 1. Container configuration info: `docker-compose.yaml`.
