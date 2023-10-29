@@ -30,6 +30,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+TESTING = os.getenv("TESTING", 0)
 
 ALLOWED_HOSTS = []
 
@@ -80,16 +81,28 @@ WSGI_APPLICATION = 'svb_web.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT')
+if TESTING:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': "db.sqlite3",
+            'USER': "user",
+            'PASSWORD': "password",
+            'HOST': "localhost",
+            'PORT': 5432,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': os.getenv('POSTGRES_DB', "test"),
+            'USER': os.getenv('POSTGRES_USER', "test"),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', "test"),
+            'HOST': os.getenv('POSTGRES_HOST', "localhost"),
+            'PORT': os.getenv('POSTGRES_PORT', 5432)
+        }
+    }
 
 
 # Password validation
