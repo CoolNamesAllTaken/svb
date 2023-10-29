@@ -1,5 +1,10 @@
 from django.db import models
+<<<<<<< HEAD
 from datetime import date, datetime
+=======
+from datetime import date
+import datetime
+>>>>>>> main
 import escpos.printer
 
 
@@ -61,7 +66,7 @@ class Account(models.Model):
     ACCOUNT_NAME_MAX_LENGTH = 80 # maximum number of characters for the account name
 
     account_number = models.AutoField(primary_key=True)
-    account_name = models.CharField(default="", max_length=ACCOUNT_NAME_MAX_LENGTH)
+    account_name = models.CharField(default="")
     customer = models.ForeignKey(
         "Customer",
         # Don't allow blank since forms creating an account must specify a customer.
@@ -80,34 +85,6 @@ class Account(models.Model):
         pass
         # last_anchor_event = AnchorEvent.objects.filter(account__exact )
 
-    def init(
-            self,
-            init_timestamp=datetime.now(),
-            init_balance=0.0,
-            init_interest_rate=0.0
-    ):
-        """
-        @brief Creates an initialization anchor event for an account.
-        @param[in] init_timestamp Timestamp for ACCOUNT_CREATED AnchorEvent. Must be in the past.
-        @param[in] init_balance Starting account balance (defaults to 0).
-        @param[in] init_interest_rate Initial interest rate for the account, over the set compounding interval.
-        @retval The initialization AnchorEvent.
-        """
-        if AnchorEvent.objects.filter(account__exact=self):
-            raise RuntimeError(f"Attemped to initalize account f{self.account_number} ({self.account_name}) when it had pre-existing anchor events")
-        if init_timestamp > datetime.now():
-            raise ValueError(f"Cannot initialize an account with an AnchorEvent in the future.")
-
-        init_anchor_event = AnchorEvent(
-            account=self,
-            category=AnchorEvent.ACCOUNT_CREATED,
-            timestamp=init_timestamp,
-            balance=init_balance,
-            interest_rate=init_interest_rate
-        )
-        init_anchor_event.save()
-        return init_anchor_event
-
     def transfer_funds(
             to_account: super, 
             from_account: super, 
@@ -123,7 +100,6 @@ class Account(models.Model):
         )
         # Create deposit anchor event.
 
-
     
 class AnchorEvent(models.Model):
     # Anchor Events:
@@ -131,8 +107,6 @@ class AnchorEvent(models.Model):
     # - Interest rate changed.
     # - Candy deposited into account.
     # - Candy withdrawn from account.
-    CATEGORY_NAME_MAX_LENGTH = 20
-
     ACCOUNT_CREATED = "UPDATE_INTEREST"
     DEPOSIT = "DEPOSIT"
     WITHDRAWAL = "WITHDRAWAL"
@@ -146,13 +120,9 @@ class AnchorEvent(models.Model):
 
     account = models.ForeignKey(
         "Account",
-        on_delete=models.CASCADE # delete AnchorEvent when its referenced Account is deleted.
+        on_delete=models.CASCADE # delete AccountTransaction when associated Account is deleted
     )
-    category = models.CharField(
-        max_length=CATEGORY_NAME_MAX_LENGTH,
-        choices=CATEGORY_CHOICES,
-        default=None
-    )
+    category = models.Choices(CATEGORY_CHOICES)
     timestamp = models.DateTimeField(auto_now=True)
     balance = models.DecimalField(decimal_places=3, max_digits=10) # balance immediately after event
     interest_rate = models.FloatField(default=0.0) # 0.01 = 1%; default to 0 cuz WE decide when you get interest
