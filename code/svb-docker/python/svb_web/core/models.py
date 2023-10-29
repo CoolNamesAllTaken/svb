@@ -1,6 +1,5 @@
 from django.db import models
-from datetime import date
-import datetime
+from datetime import date, datetime
 import escpos.printer
 import math
 
@@ -124,7 +123,7 @@ class NewsArticle(models.Model):
 
     @property
     def is_published(self):
-        return self.date_published is not None and datetime.datetime.now() > self.date_published
+        return self.date_published is not None and datetime.now() > self.date_published
 
 class ReceiptPrinter(models.Model):
     ip_address = models.GenericIPAddressField(unique=True)
