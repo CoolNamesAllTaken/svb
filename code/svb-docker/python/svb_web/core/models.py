@@ -117,16 +117,33 @@ class ReceiptPrinter(models.Model):
             self.ip_address
         )
 
+    def _print_header(self):
+        import os
+        import PIL.Image
+        from svb_web.settings import STATIC_ROOT
+        banner_pathname = os.path.join(
+            STATIC_ROOT,
+            "core",
+            "assets",
+            "svb_banner.png"
+        )
+        default_banner_img = PIL.Image.open(banner_pathname)
+        small_banner_img = default_banner_img.resize(
+            [x // 4 for x in default_banner_img.size]
+        )
+        self._client.set(align="center")
+        self._client.image(small_banner_img)
+
     def print_deposit_receipt(self, account: Account) -> None:
         self._client.open()
+        self._print_header()
         self._client.text("deposit receipt")
-
         self._client.cut()
 
     def print_withdrawal_receipt(self, account: Account) -> None:
         self._client.open()
+        self._print_header()
         self._client.text("withdraw receipt")
-
         self._client.cut()
 
 
