@@ -1,3 +1,5 @@
+from __future__ import annotations # allow type hinting with the type of the enclosing class
+
 from django.db import models
 from datetime import date, datetime, timezone
 import escpos.printer
@@ -75,6 +77,7 @@ class Account(models.Model):
         null=True, # allow NULL values in storage
         on_delete=models.CASCADE # delete Account when associated Customer is deleted
     )
+
     # Account balance at current timestamp can be calculated from previous anchor event
     # timestamp and anchor event account balance.
     def get_balance(self, timestamp=None):
@@ -138,7 +141,7 @@ class Account(models.Model):
         last_anchor_event = self.get_last_anchor_event(timestamp=timestamp)
         if last_anchor_event is None:
             raise RuntimeError(f"Attempted to set interest rate for account {self.account_number} ({self.account_name}) before it was initialized.")
-        if last_anchor_event.timestamp >= timestamp:
+        if last_anchor_event.timestamp > timestamp: # Note: this is a deliberate >, not >=. Timestamp resolution is ~100ms.
             raise RuntimeError(f"Attempted to set interest rate for account {self.account_number} ({self.account_name}) before the most recent AnchorEvent.")
         anchor_event = AnchorEvent(
             account=self,
@@ -148,6 +151,10 @@ class Account(models.Model):
             interest_rate=interest_rate
         )
         anchor_event.save()
+        # Handle special case where two anchor events occur too close together and timestamp resolution isn't sufficient: overwrite previous
+        # anchor event with the new one.
+        if last_anchor_event.timestamp == anchor_event.timestamp:
+            last_anchor_event.delete()
 
     def init(
             self,
@@ -179,23 +186,61 @@ class Account(models.Model):
         init_anchor_event.save()
         return init_anchor_event
 
+    @classmethod
     def transfer_funds(
-            to_account: super, 
-            from_account: super, 
-            amount: float):
+        cls,
+        from_account: Account,
+        to_account: Account, 
+        amount: float
+    ):
+        """
+        @brief Transfer funds from one account to another. Static method since it invokes on two accounts simultaneously.
+        @param[in] from_account Account object to transfer funds out of.
+        @param[in] to_account Account object to transfer funds into.
+        @param[in] amount Amount to transfer.
+        @retval True if success, False if failed.
+        """
+        last_from_account_anchor = from_account.get_last_anchor_event()
+        last_to_account_anchor = to_account.get_last_anchor_event()
+        if last_from_account_anchor is None or last_to_account_anchor is None:
+            raise RuntimeError(f"Attempted a transfer between one or more accounts that weren't initialized.")
+
         # Create simulataneous deposit and withdrawal anchor events.
         transfer_timestamp = datetime.now(tz=timezone.utc)
         # Create withdrawal anchor event.
-        deposit_anchor = AnchorEvent(
+        withdrawal_anchor = AnchorEvent(
             account=from_account,
             category=AnchorEvent.WITHDRAWAL,
             timestamp=transfer_timestamp,
-            interest_rate=AnchorEvent.objects.filter(account=from_account).latest('timestamp')
-
+            balance=from_account.get_balance(timestamp=transfer_timestamp)-amount,
+            # Don't think about the problem case of making a transfer before the most recent AnchorEvent.
+            interest_rate=from_account.get_last_anchor_event().interest_rate
         )
+        if withdrawal_anchor.balance < 0:
+            print(
+                f"Account transfer of f{amount} treats between account"
+                f"{from_account.account_number} ({from_account.account_name}) ->"
+                f"{to_account.account_number} ({to_account.account_name})"
+                "failed due to insufficinet funds."
+            )
+            return False # abort the transfer due to insufficient funds
         # Create deposit anchor event.
-
-
+        deposit_anchor = AnchorEvent(
+            account=to_account,
+            category=AnchorEvent.DEPOSIT,
+            timestamp=transfer_timestamp,
+            balance=to_account.get_balance(timestamp=transfer_timestamp)+amount,
+            # Don't think about the problem case of making a transfer before the most recent AnchorEvent.
+            interest_rate=to_account.get_last_anchor_event().interest_rate
+        )
+        # Update anchor events and overwrite conflicting events (timestamp too close).
+        if last_from_account_anchor.timestamp == withdrawal_anchor.timestamp:
+            last_from_account_anchor.delete() # overwrite with new anchor
+        withdrawal_anchor.save()
+        if last_to_account_anchor.timestamp == deposit_anchor.timestamp:
+            last_to_account_anchor.delete()
+        deposit_anchor.save()
+        return True
     
 class AnchorEvent(models.Model):
     # Anchor Events:

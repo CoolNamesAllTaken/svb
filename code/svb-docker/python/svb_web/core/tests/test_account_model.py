@@ -100,19 +100,59 @@ def test_account_interest_rate():
     assert test_account.get_interest_rate() == 2.0
     # Now see if we can recall the interest rate in the past.
     assert test_account.get_interest_rate(timestamp=saved_timestamp) == 5.3
+    test_account.delete()
 
+@pytest.mark.django_db
+def test_account_transfer():
+    account1 = Account(
+        account_name="test1",
+        customer=None
+    )
+    account2 = Account(
+        account_name="test2",
+        customer=None
+    )
 
-# @pytest.mark.django_db
-# def test_account_transfer():
-#     account1 = Account(
-#         account_name="test1",
-#         customer=None
-#     )
-#     account2 = Account(
-#         account_name="test2",
-#         customer=None
-#     )
-#     account1.save()
-#     account2.save()
+    # Check that we can't transfer funds between unsaved accounts.
+    with pytest.raises(RuntimeError):
+        Account.transfer_funds(account1, account2, 5)
+        Account.transfer_funds(account2, account1, 3)
 
-#     account1.transfer_funds()
+    account1.save()
+    account2.save()
+
+    # Check that we can't transfer funds between non-initialized accounts.
+    with pytest.raises(RuntimeError):
+        Account.transfer_funds(account1, account2, 5)
+        Account.transfer_funds(account2, account1, 3)
+
+    account1.init(
+        balance=6
+    )
+
+    # Check that we still can't transfer funds if one of the accounts is not initialized.
+    with pytest.raises(RuntimeError):
+        Account.transfer_funds(account1, account2, 5)
+        Account.transfer_funds(account2, account1, 3)
+
+    account2.init(
+        balance=2
+    )
+
+    assert account1.get_balance() == 6
+    assert account2.get_balance() == 2
+    # Transfer should fail due to insufficient balance.
+    assert not Account.transfer_funds(account1, account2, 80)
+    assert account1.get_balance() == 6
+    assert account2.get_balance() == 2
+    # Transfer should succeed.
+    assert Account.transfer_funds(account1, account2, 1)
+    assert account1.get_balance() == 5
+    assert account2.get_balance() == 3
+    # Do fast transfers to make sure overwriting of most recent anchor events with identical
+    # timestamps is working properly.
+    assert Account.transfer_funds(account1, account2, 1)
+    assert Account.transfer_funds(account1, account2, 1)
+    assert Account.transfer_funds(account1, account2, 1)
+    assert account1.get_balance() == 2
+    assert account2.get_balance() == 6
