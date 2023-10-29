@@ -299,7 +299,7 @@ class NewsArticle(models.Model):
 
     @property
     def is_published(self):
-        return self.date_published is not None and datetime.datetime.now(tz=timezone.utc) > self.date_published
+        return self.date_published is not None and datetime.now(tz=timezone.utc) > self.date_published
 
 class ReceiptPrinter(models.Model):
     ip_address = models.GenericIPAddressField(unique=True)
