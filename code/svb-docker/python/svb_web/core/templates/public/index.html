@@ -69,6 +69,80 @@
         on the basis of your own objectives, in-character experience and existing candy resources.
     </p>
 </div>
+    
+{{historical_assets|json_script:"historicalAssets"}}
+{{historical_obligations|json_script:"historicalObligations"}}
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js" charset="utf-8"></script>
+<script>
+    HISTORICAL_ASSETS = JSON.parse(document.getElementById("historicalAssets").textContent)
+    HISTORICAL_OBLIGATIONS = JSON.parse(document.getElementById("historicalObligations").textContent)
+    const assetsOverTime = {
+            x: [],
+            y: [],
+            name: 'Assets',
+            type: 'scatter',
+            mode: 'lines+markers',
+            marker: {
+                color: "#113148",
+            }
+        }
+    const obligationsOverTime = {
+            x: [],
+            y: [],
+            name: 'Obligations',
+            type: 'scatter',
+            mode: 'lines+markers',
+            marker: {
+                color: "#57c0fd",
+            }
+        }
+    const COMPOUNDING_INTERVAL_SECONDS = 1800
+    const LAYOUT = {
+        font: {
+            size: 25,
+        },
+        xaxis: {
+            nticks: 5,
+        },
+        yaxis: {
+            nticks: 5,
+        },
+        legend: {
+            orientation: "h",
+            x: 0,
+            y: -0.5,
+        },
+    }
+
+
+    function applyCallbackToBigGraph() {
+        // console.log(ACCOUNTS_DATA)
+        const graph = document.getElementById('big-scary-graph')
+        backfillBigScaryGraph()
+        Plotly.newPlot(`big-scary-graph`, [assetsOverTime, obligationsOverTime],
+                layout=LAYOUT,
+                {staticPlot: true}
+            )
+    }
+
+
+    function convertTimestampToPlotlyDatetime(timestamp) {
+        const date = new Date(timestamp * 1000)
+        return date
+    }
+
+    function backfillBigScaryGraph() {
+        for (const dataPoint of HISTORICAL_OBLIGATIONS){
+            obligationsOverTime.x.push(convertTimestampToPlotlyDatetime(dataPoint.x))
+            obligationsOverTime.y.push(dataPoint.y)
+        }
+        for (const dataPoint of HISTORICAL_ASSETS){
+            assetsOverTime.x.push(convertTimestampToPlotlyDatetime(dataPoint.x))
+            assetsOverTime.y.push(dataPoint.y)
+        }
+
+    applyCallbackToBigGraph()
+</script>
 <!-- <script>
     function autoRefresh() {
         window.location = window.location.href;
