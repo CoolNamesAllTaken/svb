@@ -35,8 +35,12 @@ else:
     DEBUG = False
 TESTING = os.getenv("TESTING", 0)
 
-ALLOWED_HOSTS = os.getenv("DOMAINS")
+ALLOWED_HOSTS = [
+    "svb.pantsforbirds.com",
+    "localhost"
+]
 
+CSRF_TRUSTED_ORIGINS = ['https://svb.pantsforbirds.com']
 
 # Application definition
 
