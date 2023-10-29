@@ -1,11 +1,10 @@
 from django.shortcuts import render
+import core.models
 
 # Create your views here.
 def index(request):
+    articles = core.models.NewsArticle.objects.all()
     context = {
-        "num_ids_created": 0,
-        "num_windows": 0,
-        "wait_time": 0,
-        "id_card_image_data": None,
-    }
+                "articles": articles
+               }
     return render(request, "public/index.html", context)

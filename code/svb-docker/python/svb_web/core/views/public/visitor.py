@@ -13,4 +13,4 @@ def article(request, article_headline=None):
         'articles': get_live_newsfeed(),
         'article': article,
     }
-    return render(request, 'article.html', context=context)
+    return render(request, 'public/article.html', context=context)
