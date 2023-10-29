@@ -2,6 +2,7 @@ from django.db import models
 from datetime import date
 import datetime
 import escpos.printer
+import math
 
 
 class IdCardPrintJob(models.Model):
@@ -65,6 +66,22 @@ class Account(models.Model):
     )
     # Account balance at current timestamp can be calculated from previous anchor event
     # timestamp and anchor event account balance.
+    def get_balance(self, timestamp):
+        """
+        @brief Returns the balance of the account at the given timestamp. Backdates to the last anchor event.
+        And calculates the interest accrued since then.
+        @param[in] timestamp Datetime timestamp to calculate interest at.
+        @retval Account balance at the specified timestamp.
+        """
+        COMPOUNDING_INTERVAL_SECONDS = 1800
+        most_recent_event_at_timestamp = AnchorEvent.objects.filter(account=self,
+                                                                    timestamp__lte=timestamp).latest("timestamp")
+        interest_rate = most_recent_event_at_timestamp.interest_rate
+        anchor_event_timestamp = most_recent_event_at_timestamp.timestamp
+        anchor_event_balance = most_recent_event_at_timestamp.balance
+        intervals_since_anchor_event = (timestamp - anchor_event_timestamp) / COMPOUNDING_INTERVAL_SECONDS
+        balance_at_timestamp = anchor_event_balance * math.exp(interest_rate * intervals_since_anchor_event)
+        return balance_at_timestamp
 
     
 class AnchorEvent(models.Model):
