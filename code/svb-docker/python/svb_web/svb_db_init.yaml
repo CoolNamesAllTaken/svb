@@ -1,0 +1,10 @@
+- model: core.Account
+  pk: "0"
+  fields:
+    customer: NULL
+    account_name: "RESERVES"
+- model: core.Account
+  pk: "1"
+  fields:
+    customer: NULL
+    account_name: "DISBURSED"
