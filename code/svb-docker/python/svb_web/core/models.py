@@ -178,7 +178,7 @@ class Account(models.Model):
 
         init_anchor_event = AnchorEvent(
             account=self,
-            category=AnchorEvent.ACCOUNT_CREATED,
+            category=AnchorEvent.CREATE_ACCOUNT,
             timestamp=timestamp,
             balance=balance,
             interest_rate=interest_rate
@@ -253,12 +253,12 @@ class AnchorEvent(models.Model):
     # - Candy withdrawn from account.
     CATEGORY_NAME_MAX_LENGTH = 20
 
-    ACCOUNT_CREATED = "UPDATE_INTEREST"
+    CREATE_ACCOUNT = "CREATE_ACCOUNT"
     DEPOSIT = "DEPOSIT"
     WITHDRAWAL = "WITHDRAWAL"
     UPDATE_INTEREST = "UPDATE_INTEREST"
     CATEGORY_CHOICES = [
-        (ACCOUNT_CREATED, "Create the account."),
+        (CREATE_ACCOUNT, "Create the account."),
         (DEPOSIT, "Deposit funds into the associated account."),
         (WITHDRAWAL, "Withdraw funds from the associated account."),
         (UPDATE_INTEREST, "Update the interest rate of the associated account.")
