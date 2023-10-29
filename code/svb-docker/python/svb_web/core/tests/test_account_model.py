@@ -30,9 +30,6 @@ def test_account_create_delete():
     # Test that accounts can be deleted.
     account1.delete()
     assert len(Account.objects.filter(account_name__exact="test1")) == 0
-    
-    # Reset database to original state.
-    account2.delete()
 
 @pytest.mark.django_db
 def test_account_init_delete():
