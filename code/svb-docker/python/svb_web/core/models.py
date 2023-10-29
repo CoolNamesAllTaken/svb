@@ -205,7 +205,8 @@ class Account(models.Model):
         if last_from_account_anchor is None or last_to_account_anchor is None:
             raise RuntimeError(f"Attempted a transfer between one or more accounts that weren't initialized.")
 
-        # Create simulataneous deposit and withdrawal anchor events.
+        # Create simultaneous deposit and withdrawal anchor events.
+
         transfer_timestamp = datetime.now(tz=timezone.utc)
         # Create withdrawal anchor event.
         withdrawal_anchor = AnchorEvent(
