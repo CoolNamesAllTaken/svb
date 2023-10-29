@@ -70,7 +70,8 @@ def test_account_init_delete():
     retrieved_init_anchor_event = matched_init_anchor_events[0]
     assert(retrieved_init_anchor_event.timestamp == init_anchor_event.timestamp)
     # Cast these both to floats since Balance is a Decimal to avoid floating point error
-    # and now it bite us in the butt.
+    # and it is still the right choice for a legitimate financial institution like ours.
+
     assert float(retrieved_init_anchor_event.balance) == float(init_anchor_event.balance)
     assert retrieved_init_anchor_event.interest_rate == init_anchor_event.interest_rate
 
