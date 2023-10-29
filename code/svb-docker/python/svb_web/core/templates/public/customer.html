@@ -96,6 +96,10 @@
 
     function backfillAccountBalance(accountDetails) {
         const accountNumber = accountDetails['account_number']
+        for (const dataPoint of accountDetails['anchor_event_history_data']){
+            accountBalancesOverTime[accountNumber].x.push(convertTimestampToPlotlyDatetime(dataPoint.x))
+            accountBalancesOverTime[accountNumber].y.push(dataPoint.y)
+        }
         const lastAnchorEventTimestamp = accountDetails['js_last_anchor_event_timestamp']
         const currentTimestamp = Date.now() / 1000
         const timeIntervalsBeforePageLoad = (currentTimestamp - lastAnchorEventTimestamp) / COMPOUNDING_INTERVAL_SECONDS
@@ -103,7 +107,6 @@
             accountBalancesOverTime[accountNumber].x.push(convertTimestampToPlotlyDatetime(lastAnchorEventTimestamp + (i * COMPOUNDING_INTERVAL_SECONDS)))
             accountBalancesOverTime[accountNumber].y.push(calculateAccountBalanceAtTime(accountDetails, lastAnchorEventTimestamp + (i * COMPOUNDING_INTERVAL_SECONDS)))
         }
-        // TODO: actually backfill using entire anchor event history for the account
     }
 
     function calculateAccountBalanceAtTime(accountDetails, currentTimestamp) {
