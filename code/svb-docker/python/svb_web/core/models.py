@@ -74,14 +74,18 @@ class Account(models.Model):
         @retval Account balance at the specified timestamp.
         """
         COMPOUNDING_INTERVAL_SECONDS = 1800
-        most_recent_event_at_timestamp = AnchorEvent.objects.filter(account=self,
-                                                                    timestamp__lte=timestamp).latest("timestamp")
-        interest_rate = most_recent_event_at_timestamp.interest_rate
-        anchor_event_timestamp = most_recent_event_at_timestamp.timestamp
-        anchor_event_balance = most_recent_event_at_timestamp.balance
-        intervals_since_anchor_event = (timestamp - anchor_event_timestamp).total_seconds() / COMPOUNDING_INTERVAL_SECONDS
-        balance_at_timestamp = float(anchor_event_balance) * math.exp(interest_rate * intervals_since_anchor_event)
-        return balance_at_timestamp
+        events_before_timestamp = AnchorEvent.objects.filter(account=self,
+                                                                    timestamp__lte=timestamp)
+        if events_before_timestamp:
+            most_recent_event_at_timestamp = events_before_timestamp.latest("timestamp")
+            interest_rate = most_recent_event_at_timestamp.interest_rate
+            anchor_event_timestamp = most_recent_event_at_timestamp.timestamp
+            anchor_event_balance = most_recent_event_at_timestamp.balance
+            intervals_since_anchor_event = (timestamp - anchor_event_timestamp).total_seconds() / COMPOUNDING_INTERVAL_SECONDS
+            balance_at_timestamp = float(anchor_event_balance) * math.exp(interest_rate * intervals_since_anchor_event)
+            return balance_at_timestamp
+        else:
+            return 0
 
     
 class AnchorEvent(models.Model):
