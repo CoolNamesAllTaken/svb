@@ -1,4 +1,6 @@
-import pytest, time
+import pytest
+import time
+
 
 from core.models import Customer, Account, AnchorEvent
 from datetime import datetime, timedelta, timezone
