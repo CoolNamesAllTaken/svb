@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import date
+import datetime
 import escpos.printer
 
 
@@ -41,8 +42,8 @@ class Customer(models.Model):
 
     # Model Parameters
     customer_id = models.CharField(default="TBA", max_length=CUSTOMER_ID_MAX_LENGTH, primary_key=True)
-    first_name = models.CharField(default="Edween")
-    costume = models.CharField(default="Founder")
+    first_name = models.CharField(default="Edween", max_length=64)
+    costume = models.CharField(default="Founder", max_length=64)
     referrer = models.ForeignKey(
         "Customer",
         blank=True, # allow empty fields in forms
@@ -50,7 +51,7 @@ class Customer(models.Model):
         on_delete=models.SET_NULL # make referrer field null if the referrer AccountHolder gets deleted
     )
     joined_date = models.DateField(default=date.today)
-    security_candy = models.CharField(default="")
+    security_candy = models.CharField(default="", max_length=64)
 
 
 
