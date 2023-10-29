@@ -8,6 +8,15 @@ import yaml # for config stuff
 
 import qrcode
 
+def parse_customer_id_from_url(url):
+    """
+    @brief Parses a URL of type svb.pantsforbirds.com/c/<customer_id> and returns just the customer ID.
+    @param[in] URL String to parse customer_id from.
+    @retval Parsed customer ID, or None if it wasn't found.
+    """
+    pass
+    # base_url = 
+
 def create_debit_card(customer):
     pass
 
