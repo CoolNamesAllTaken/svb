@@ -41,11 +41,45 @@ class CustomerForm(forms.ModelForm):
                 )
         return cleaned_data
 
-class AccountTransferForm(forms.Form):
+class AccountTransactionForm(forms.Form):
+    customer_id = forms.CharField(
+        max_length=Customer.CUSTOMER_ID_MAX_LENGTH,
+        disabled=True
+    )
+    action = forms.ChoiceField(
+        choices= [
+            ("DEPOSIT", "Make a deposit."),
+            ("WITHDRAW", "Make a withdrawal."),
+            ("TRANSFER", "Transfer funds between accounts."),
+            ("CLOSEOUT", "Withdraw all funds and close account.")
+        ]
+    )
+    from_account = forms.ModelChoiceField(
+        queryset=Account.objects.all(), # Overwrite this with initial value.
+        required=False 
+    )
+    to_account = forms.ModelChoiceField(
+        queryset=Account.objects.all(), # OVerwrite this with initial value.
+        required=False # Not needed for closeouts or withdrawals.
+    )
+    amount = forms.IntegerField(
+        min_value=0,
+        required=False # Not needed for closeouts.
+    )
     
     def clean(self):
-        pass
+        cleaned_data = super().clean()
 
+        if cleaned_data['action']
+        if cleaned_data['from_account'] not in Account.objects.filter(customer__customer_id=cleaned_data['customer_id']):
+            raise forms.ValidationError(
+                f"From Account does not belong to customer with ID {cleaned_data['customer_id']}"
+            )
+        if cleaned_data['to_account'] not in Account.objects.filter(customer__customer_id=cleaned_data['customer_id']):
+            raise forms.ValidationError(
+                f"To Account does not belong to customer with ID {cleaned_data['customer_id']}"
+            )
+        # Don't bother returning cleaned_data, not overriding anything.
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = NewsArticle
