@@ -234,7 +234,8 @@ class Account(models.Model):
             timestamp=transfer_timestamp,
             balance=to_account.get_balance(timestamp=transfer_timestamp)+amount,
             # Don't think about the problem case of making a transfer before the most recent AnchorEvent.
-            interest_rate=to_account.get_last_anchor_event().interest_rate
+            interest_rate=last_to_account_anchor.interest_rate
+
         )
         # Update anchor events and overwrite conflicting events (timestamp too close).
         if last_from_account_anchor.timestamp == withdrawal_anchor.timestamp:
