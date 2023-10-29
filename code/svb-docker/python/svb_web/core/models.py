@@ -164,7 +164,7 @@ class Account(models.Model):
     ):
         """
         @brief Creates an initialization anchor event for an account.
-        @param[in] init_timestamp Timestamp for ACCOUNT_CREATED AnchorEvent. Must be in the past.
+        @param[in] init_timestamp Timestamp for CREATE_ACCOUNT AnchorEvent. Must be in the past.
         @param[in] init_balance Starting account balance (defaults to 0).
         @param[in] init_interest_rate Initial interest rate for the account, over the set compounding interval.
         @retval The initialization AnchorEvent.
