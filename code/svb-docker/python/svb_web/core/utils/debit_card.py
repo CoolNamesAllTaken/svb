@@ -12,7 +12,7 @@ def create_debit_card(customer):
     pass
 
 def assemble_debit_card(
-    output_path="/app/media/accounts/misc",
+    output_path="/app/media/customers/misc",
     save_pdf=True,
     first_name="Edween",
     costume="Founder",
