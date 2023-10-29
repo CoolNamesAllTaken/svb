@@ -9,6 +9,7 @@ urlpatterns = [
     path('account/', views.public.customer.account, name="account_generic"),
     path('customer/', views.public.customer.overview, name='customer_generic'),
     path('customer/<str:customer_id>/', views.public.customer.overview, name='customer'),
+    path('c/<str:customer_id>/', views.public.customer.overview, name='customer'),
     path('article/<str:article_headline>/', views.public.visitor.article, name='article'),
     path('internal/', views.internal.common.index, name='internal_index'),
     path('internal/news_editor/', views.internal.author.news_editor),

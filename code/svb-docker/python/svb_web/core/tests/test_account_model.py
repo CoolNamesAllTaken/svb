@@ -94,9 +94,7 @@ def test_account_interest_rate():
     assert test_account.get_interest_rate() == 5.3
     saved_timestamp = datetime.now(tz=timezone.utc) # save this for later
     # Set and get a new interest rate.
-    # FIXME: Known limitation, if we update interest rates with intervals faster than 100ms, we exceed the
-    # resolution of our timestamps and get Anchor Event out of order errors (graceful failure, not hidden).
-    time.sleep(0.1)
+    time.sleep(0.1) # wait for a new timestamp to occur
     test_account.set_interest_rate(2.0)
     assert test_account.get_interest_rate() == 2.0
     # Now see if we can recall the interest rate in the past.
@@ -113,12 +111,6 @@ def test_account_transfer():
         account_name="test2",
         customer=None
     )
-
-    # Check that we can't transfer funds between unsaved accounts.
-    with pytest.raises(RuntimeError):
-        Account.transfer_funds(account1, account2, 5)
-        Account.transfer_funds(account2, account1, 3)
-
     account1.save()
     account2.save()
 

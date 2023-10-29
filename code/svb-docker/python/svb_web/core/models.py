@@ -5,7 +5,7 @@ from datetime import date, datetime, timezone
 import escpos.printer
 import math
 
-def get_utc_timestamp():
+def get_current_utc_timestamp():
     """
     @brief Function to get the current timezone aware timestamp.
     """
@@ -89,7 +89,7 @@ class Account(models.Model):
         """
         COMPOUNDING_INTERVAL_SECONDS = 1800
         if timestamp is None:
-            timestamp = get_utc_timestamp()
+            timestamp = get_current_utc_timestamp()
         events_before_timestamp = AnchorEvent.objects.filter(account=self,
                                                                     timestamp__lte=timestamp)
         if events_before_timestamp:
@@ -111,7 +111,7 @@ class Account(models.Model):
         @retval The most recent AnchorEvent, or None if the account has not been initialized.
         """
         if timestamp is None:
-            timestamp = get_utc_timestamp()
+            timestamp = get_current_utc_timestamp()
         most_recent_anchor_events = AnchorEvent.objects.filter(account__exact=self, timestamp__lte=timestamp)
         if len(most_recent_anchor_events) == 0:
             return None
@@ -123,7 +123,7 @@ class Account(models.Model):
         @param[in] timestamp Optional timestamp to find the most recent interest rate before.
         """
         if timestamp is None:
-            timestamp = get_utc_timestamp()
+            timestamp = get_current_utc_timestamp()
         last_anchor_event = self.get_last_anchor_event(timestamp=timestamp)
         if last_anchor_event is None:
             raise RuntimeError(f"Attempted to get interest rate from account {self.account_number} ({self.account_name}) before it was initialized.")
@@ -137,7 +137,7 @@ class Account(models.Model):
         @param[in] timestamp Optional timestamp in the past (must be newer than most recent AnchorEvent) to set the interest at.
         """
         if timestamp is None:
-            timestamp = get_utc_timestamp()
+            timestamp = get_current_utc_timestamp()
         last_anchor_event = self.get_last_anchor_event(timestamp=timestamp)
         if last_anchor_event is None:
             raise RuntimeError(f"Attempted to set interest rate for account {self.account_number} ({self.account_name}) before it was initialized.")
@@ -170,7 +170,7 @@ class Account(models.Model):
         @retval The initialization AnchorEvent.
         """
         if timestamp is None:
-            timestamp = get_utc_timestamp()
+            timestamp = get_current_utc_timestamp()
         if AnchorEvent.objects.filter(account__exact=self):
             raise RuntimeError(f"Attemped to initalize account {self.account_number} ({self.account_name}) when it had pre-existing anchor events")
         if timestamp > datetime.now(tz=timezone.utc):
