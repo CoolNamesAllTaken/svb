@@ -70,7 +70,6 @@ class AccountTransactionForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
 
-        if cleaned_data['action']
         if cleaned_data['from_account'] not in Account.objects.filter(customer__customer_id=cleaned_data['customer_id']):
             raise forms.ValidationError(
                 f"From Account does not belong to customer with ID {cleaned_data['customer_id']}"
