@@ -223,7 +223,8 @@ class Account(models.Model):
                 f"Account transfer of f{amount} treats between account"
                 f"{from_account.account_number} ({from_account.account_name}) ->"
                 f"{to_account.account_number} ({to_account.account_name})"
-                "failed due to insufficinet funds."
+                "failed due to insufficient funds."
+
             )
             return False # abort the transfer due to insufficient funds
         # Create deposit anchor event.
