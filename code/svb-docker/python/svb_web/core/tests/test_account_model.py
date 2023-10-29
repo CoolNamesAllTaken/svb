@@ -7,13 +7,6 @@ from datetime import datetime, timedelta, timezone
 
 @pytest.mark.django_db
 def test_account_create_delete():
-    customer = Customer(
-        customer_id="test_cust",
-        first_name="frank",
-        costume="lyboring",
-        referrer=None,
-        security_candy="toots"
-    )
     account1 = Account(
         account_name="test1",
         customer=None
