@@ -1,6 +1,13 @@
 from django.db import models
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 import escpos.printer
+import math
+
+def get_utc_timestamp():
+    """
+    @brief Function to get the current timezone aware timestamp.
+    """
+    return datetime.now(tz=timezone.utc)
 
 
 class IdCardPrintJob(models.Model):
@@ -70,21 +77,83 @@ class Account(models.Model):
     )
     # Account balance at current timestamp can be calculated from previous anchor event
     # timestamp and anchor event account balance.
-    def get_balance(self, timestamp):
+    def get_balance(self, timestamp=None):
         """
         @brief Returns the balance of the account at the given timestamp. Backdates to the last anchor event.
         And calculates the interest accrued since then.
         @param[in] timestamp Datetime timestamp to calculate interest at.
-        @retval Account balance at the specified timestamp.
+        @retval Account balance at the specified timestamp. Uses current timestamp if not specified.
         """
-        pass
-        # last_anchor_event = AnchorEvent.objects.filter(account__exact )
+        COMPOUNDING_INTERVAL_SECONDS = 1800
+        if timestamp is None:
+            timestamp = get_utc_timestamp()
+        events_before_timestamp = AnchorEvent.objects.filter(account=self,
+                                                                    timestamp__lte=timestamp)
+        if events_before_timestamp:
+            most_recent_event_at_timestamp = events_before_timestamp.latest("timestamp")
+            interest_rate = most_recent_event_at_timestamp.interest_rate
+            anchor_event_timestamp = most_recent_event_at_timestamp.timestamp
+            anchor_event_balance = most_recent_event_at_timestamp.balance
+            intervals_since_anchor_event = (timestamp - anchor_event_timestamp).total_seconds() / COMPOUNDING_INTERVAL_SECONDS
+            balance_at_timestamp = float(anchor_event_balance) * math.exp(interest_rate * intervals_since_anchor_event)
+            return balance_at_timestamp
+        else:
+            return 0
+
+    def get_last_anchor_event(self, timestamp=None):
+        """
+        @brief Helper function that returns the last AnchorEvent, or the last anchor event that occurred before an optional timestamp. Used
+        by the other getter functions.
+        @param[in] timestamp Optiona ltimestamp to find the most recent anchor event before.
+        @retval The most recent AnchorEvent, or None if the account has not been initialized.
+        """
+        if timestamp is None:
+            timestamp = get_utc_timestamp()
+        most_recent_anchor_events = AnchorEvent.objects.filter(account__exact=self, timestamp__lte=timestamp)
+        if len(most_recent_anchor_events) == 0:
+            return None
+        return most_recent_anchor_events.latest('timestamp')
+    
+    def get_interest_rate(self, timestamp=None):
+        """
+        @brief Returns the current interest rate of an account, or the most recent interest rate before a specified timestamp.
+        @param[in] timestamp Optional timestamp to find the most recent interest rate before.
+        """
+        if timestamp is None:
+            timestamp = get_utc_timestamp()
+        last_anchor_event = self.get_last_anchor_event(timestamp=timestamp)
+        if last_anchor_event is None:
+            raise RuntimeError(f"Attempted to get interest rate from account {self.account_number} ({self.account_name}) before it was initialized.")
+        return last_anchor_event.interest_rate
+    
+    def set_interest_rate(self, interest_rate, timestamp=None):
+        """
+        @brief Sets the interest rate of the account, with an optional specified timestamp that must be in the past and more recent
+        than the most recent anchor event.
+        @param[in] interest_rate New interest rate to set.
+        @param[in] timestamp Optional timestamp in the past (must be newer than most recent AnchorEvent) to set the interest at.
+        """
+        if timestamp is None:
+            timestamp = get_utc_timestamp()
+        last_anchor_event = self.get_last_anchor_event(timestamp=timestamp)
+        if last_anchor_event is None:
+            raise RuntimeError(f"Attempted to set interest rate for account {self.account_number} ({self.account_name}) before it was initialized.")
+        if last_anchor_event.timestamp >= timestamp:
+            raise RuntimeError(f"Attempted to set interest rate for account {self.account_number} ({self.account_name}) before the most recent AnchorEvent.")
+        anchor_event = AnchorEvent(
+            account=self,
+            category=AnchorEvent.UPDATE_INTEREST,
+            timestamp=timestamp,
+            balance=self.get_balance(timestamp),
+            interest_rate=interest_rate
+        )
+        anchor_event.save()
 
     def init(
             self,
-            init_timestamp=datetime.now(),
-            init_balance=0.0,
-            init_interest_rate=0.0
+            timestamp=None,
+            balance=0.0,
+            interest_rate=0.0
     ):
         """
         @brief Creates an initialization anchor event for an account.
@@ -93,17 +162,19 @@ class Account(models.Model):
         @param[in] init_interest_rate Initial interest rate for the account, over the set compounding interval.
         @retval The initialization AnchorEvent.
         """
+        if timestamp is None:
+            timestamp = get_utc_timestamp()
         if AnchorEvent.objects.filter(account__exact=self):
-            raise RuntimeError(f"Attemped to initalize account f{self.account_number} ({self.account_name}) when it had pre-existing anchor events")
-        if init_timestamp > datetime.now():
+            raise RuntimeError(f"Attemped to initalize account {self.account_number} ({self.account_name}) when it had pre-existing anchor events")
+        if timestamp > datetime.now(tz=timezone.utc):
             raise ValueError(f"Cannot initialize an account with an AnchorEvent in the future.")
 
         init_anchor_event = AnchorEvent(
             account=self,
             category=AnchorEvent.ACCOUNT_CREATED,
-            timestamp=init_timestamp,
-            balance=init_balance,
-            interest_rate=init_interest_rate
+            timestamp=timestamp,
+            balance=balance,
+            interest_rate=interest_rate
         )
         init_anchor_event.save()
         return init_anchor_event
@@ -113,12 +184,13 @@ class Account(models.Model):
             from_account: super, 
             amount: float):
         # Create simulataneous deposit and withdrawal anchor events.
-        transfer_timestamp = datetime.now()
+        transfer_timestamp = datetime.now(tz=timezone.utc)
         # Create withdrawal anchor event.
         deposit_anchor = AnchorEvent(
-            account=to_account,
+            account=from_account,
             category=AnchorEvent.WITHDRAWAL,
-            timestamp=transfer_timestamp
+            timestamp=transfer_timestamp,
+            interest_rate=AnchorEvent.objects.filter(account=from_account).latest('timestamp')
 
         )
         # Create deposit anchor event.
@@ -153,7 +225,7 @@ class AnchorEvent(models.Model):
         choices=CATEGORY_CHOICES,
         default=None
     )
-    timestamp = models.DateTimeField(auto_now=True)
+    timestamp = models.DateTimeField(default=datetime.now) # Pass handle to datetime.now so it gets evaluated when the model is created, not defined!
     balance = models.DecimalField(decimal_places=3, max_digits=10) # balance immediately after event
     interest_rate = models.FloatField(default=0.0) # 0.01 = 1%; default to 0 cuz WE decide when you get interest
 
@@ -178,7 +250,7 @@ class NewsArticle(models.Model):
 
     @property
     def is_published(self):
-        return self.date_published is not None and datetime.datetime.now() > self.date_published
+        return self.date_published is not None and datetime.datetime.now(tz=timezone.utc) > self.date_published
 
 class ReceiptPrinter(models.Model):
     ip_address = models.GenericIPAddressField(unique=True)

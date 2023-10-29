@@ -1,10 +1,10 @@
-import pytest
+import pytest, time
 
 from core.models import Customer, Account, AnchorEvent
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 @pytest.mark.django_db
-def testaccount_create_delete():
+def test_account_create_delete():
     customer = Customer(
         customer_id="test_cust",
         first_name="frank",
@@ -26,10 +26,10 @@ def testaccount_create_delete():
     # Test that account numbers are incrementing properly.
     assert account1.account_number < account2.account_number
     # Test that accounts can be retrieved by name.
-    assert(Account.objects.filter(account_name__exact="test1")[0] == account1)
+    assert Account.objects.filter(account_name__exact="test1")[0] == account1
     # Test that accounts can be deleted.
     account1.delete()
-    assert(len(Account.objects.filter(account_name__exact="test1")) == 0)
+    assert len(Account.objects.filter(account_name__exact="test1")) == 0
     
     # Reset database to original state.
     account2.delete()
@@ -42,41 +42,64 @@ def test_account_init_delete():
     )
     account1.save()
     # Account not yet initialized, there should be no associated anchor events.
-    assert(len(AnchorEvent.objects.filter(account__exact=account1)) == 0)
+    assert len(AnchorEvent.objects.filter(account__exact=account1)) == 0
     
     # Test that account can't be initialized in the future.
     with pytest.raises(ValueError):
-        account1.init(init_timestamp=datetime.now()+timedelta(minutes=10))
+        account1.init(timestamp=datetime.now(tz=timezone.utc)+timedelta(minutes=10))
     # Initialize the account.
     init_anchor_event = account1.init()
-    assert(AnchorEvent.objects.get(pk=init_anchor_event.pk) != None)
-    assert(len(AnchorEvent.objects.filter(pk__exact=init_anchor_event.pk))==1)
+    assert AnchorEvent.objects.get(pk=init_anchor_event.pk) != None
+    assert len(AnchorEvent.objects.filter(pk__exact=init_anchor_event.pk))==1
     # Test that account can't be initialized twice.
     with pytest.raises(RuntimeError):
         account1.init()
     
     # Delete the initialization AnchorEvent and init with new parameters.
     init_anchor_event.delete()
-    assert(len(AnchorEvent.objects.filter(pk__exact=init_anchor_event.pk))==0)
+    assert len(AnchorEvent.objects.filter(pk__exact=init_anchor_event.pk))==0
     # Should be able to init again now that first anchor event is gone.
-    init_timestamp=datetime.now()
+    init_timestamp=datetime.now(tz=timezone.utc)
     init_anchor_event = account1.init(
-        init_timestamp=init_timestamp,
-        init_balance=100.3,
-        init_interest_rate=3
+        timestamp=init_timestamp,
+        balance=100.3,
+        interest_rate=3
     )
     matched_init_anchor_events = AnchorEvent.objects.filter(account__exact=account1)
-    assert(len(matched_init_anchor_events) == 1)
+    assert len(matched_init_anchor_events) == 1
     retrieved_init_anchor_event = matched_init_anchor_events[0]
     assert(retrieved_init_anchor_event.timestamp == init_anchor_event.timestamp)
     # Cast these both to floats since Balance is a Decimal to avoid floating point error
     # and now it bite us in the butt.
-    assert(float(retrieved_init_anchor_event.balance) == float(init_anchor_event.balance))
-    assert(retrieved_init_anchor_event.interest_rate == init_anchor_event.interest_rate)
+    assert float(retrieved_init_anchor_event.balance) == float(init_anchor_event.balance)
+    assert retrieved_init_anchor_event.interest_rate == init_anchor_event.interest_rate
 
     # Delete the account and make sure the corresponding AnchorEvents are gone.
     account1.delete()
-    assert(len(AnchorEvent.objects.filter(account__exact=account1.pk)) == 0)
+    assert len(AnchorEvent.objects.filter(account__exact=account1.pk)) == 0
+
+@pytest.mark.django_db
+def test_account_interest_rate():
+    test_account = Account()
+    test_account.save()
+    # Can't ask for interest rate before the account is initialized.
+    with pytest.raises(RuntimeError):
+        test_account.get_interest_rate()
+    # Also can't set interest rate before the account is initiated.
+    with pytest.raises(RuntimeError):
+        test_account.set_interest_rate(9.0)
+    test_account.init()
+    test_account.set_interest_rate(5.3)
+    assert test_account.get_interest_rate() == 5.3
+    saved_timestamp = datetime.now(tz=timezone.utc) # save this for later
+    # Set and get a new interest rate.
+    # FIXME: Known limitation, if we update interest rates with intervals faster than 100ms, we exceed the
+    # resolution of our timestamps and get Anchor Event out of order errors (graceful failure, not hidden).
+    time.sleep(0.1)
+    test_account.set_interest_rate(2.0)
+    assert test_account.get_interest_rate() == 2.0
+    # Now see if we can recall the interest rate in the past.
+    assert test_account.get_interest_rate(timestamp=saved_timestamp) == 5.3
 
 
 # @pytest.mark.django_db
