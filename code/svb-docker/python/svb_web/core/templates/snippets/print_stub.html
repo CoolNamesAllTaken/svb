@@ -5,6 +5,8 @@
         {% for name in printer_names %}
             <input type="radio" name="printer_name" value="{{ name }}">
             <label>{{ name }}</label><br>
+        {% empty %}
+            <label>No Printers found in database.</label>
         {% endfor %}
         <label>Account ID:</label>
         <input type="text" name="account_number"><br>
