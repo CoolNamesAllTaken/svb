@@ -38,7 +38,7 @@ services:
     env_file:
       - .env.svb
     volumes:
-      - svb-django-db:/var/lib/mysql
+      - svb-django-db:/var/lib/postgresql/data
 
   site:
     # image specified in Dockerfile

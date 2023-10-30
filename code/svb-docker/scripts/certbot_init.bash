@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Load variables.
-source $(dirname "$0")/../.env.birdbox
+source $(dirname "$0")/../.env.svb
 data_path=$(dirname "$0")/../certbot/data # Set this to the certbot folder to dump all the generated stuff into.
-docker_compose_path=$(dirname "$0")/../docker-compose.yml
+docker_compose_path=$(dirname "$0")/../compose.prod.yml
 
 if [ ! -e "$data_path/conf/options-ssl-nginx.conf" ] || [ ! -e "$data_path/conf/ssl-dhparams.pem" ]; then
   echo "### Downloading recommended TLS parameters ..."
