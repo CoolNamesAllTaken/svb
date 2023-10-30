@@ -10,7 +10,8 @@ Windows: Install Git Bash.
 2. Run `docker compose up --build`. Run with the `-d` option if you want it to be detached (non-interactive).
 
 ## Bring Stuff Up
-`docker compose up --build`
+Development: `docker compose up --build`
+Production: `docker compose -f compose.prod.yml --build`
 
 ### Just add/modify a model?
 Run migrations!
