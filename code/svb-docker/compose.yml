@@ -13,7 +13,7 @@ services:
       - 443:443 # HTTPS
     volumes:
       # Bind mount the local nginx directory into the container to move over the configurations.
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx/debug:/etc/nginx/conf.d
       # - ./nginx/templates:/etc/nginx/templates
       # Bind mount folders from the local certbot directory into the container.
       - ./certbot/data/conf:/etc/letsencrypt

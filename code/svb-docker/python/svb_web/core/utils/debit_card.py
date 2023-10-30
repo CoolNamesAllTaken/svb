@@ -14,8 +14,14 @@ def parse_customer_id_from_url(url):
     @param[in] URL String to parse customer_id from.
     @retval Parsed customer ID, or None if it wasn't found.
     """
+    tokenized_url = url.split('/')
+    if tokenized_url[0] != "svb.pantsforbirds.com" or tokenized_url[1] != "c":
+        return None
+    else:
+        return tokenized_url[2]
+
+def generate_customer_qr_code(customer: Customer):
     pass
-    # base_url = 
 
 def create_debit_card(customer):
     pass
