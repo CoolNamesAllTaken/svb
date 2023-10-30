@@ -9,17 +9,17 @@ def calculate_historical_data_for_bank():
     historical_data_obligations = []
     historical_data_assets = []
     now = datetime.datetime.now(tz=ZoneInfo("America/Los_Angeles"))
-    BANK_ACCOUNT_ID = 7
-    bank_reserve_account = core.models.Account.objects.get(account_number=BANK_ACCOUNT_ID)
-    NIGHT_START = datetime.datetime(2023, 10, 28, hour=18, minute=0, second=0, microsecond=0,
-                                    tzinfo=ZoneInfo("America/Los_Angeles"))
-    # TODO: replace above constant with actual value from bank account model
+    bank_reserve_account = core.models.Account.objects.get(account_number=0)
+    assert bank_reserve_account.account_name == "RESERVES"
+    night_start = core.models.AnchorEvent.objects.filter(account=bank_reserve_account,
+                                                         category="CREATE_ACCOUNT"
+                                                         ).first().timestamp
     BALANCE_CALCULATION_INTERVAL_SECONDS = 1800
-    seconds_since_start = (now - NIGHT_START).total_seconds()
+    seconds_since_start = (now - night_start).total_seconds()
     intervals_since_start = range(math.floor(seconds_since_start / BALANCE_CALCULATION_INTERVAL_SECONDS) + 2)
-    accounts = core.models.Account.objects.exclude(account_number=BANK_ACCOUNT_ID).all()
+    accounts = core.models.Account.objects.exclude(account_number=bank_reserve_account.account_number).all()
     for interval in intervals_since_start:
-        interval_start = NIGHT_START + datetime.timedelta(seconds=BALANCE_CALCULATION_INTERVAL_SECONDS * interval)
+        interval_start = night_start + datetime.timedelta(seconds=BALANCE_CALCULATION_INTERVAL_SECONDS * interval)
         bank_summed_account_balances_at_interval_start = 0
         for account in accounts:
             bank_summed_account_balances_at_interval_start += account.get_balance(interval_start)
