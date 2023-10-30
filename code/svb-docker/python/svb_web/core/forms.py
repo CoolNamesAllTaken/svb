@@ -98,5 +98,11 @@ class InitializeBankForm(forms.Form):
 class FreezeRatesBankForm(forms.Form):
     pass
 
+
 class UpdateRatesBankForm(forms.Form):
     new_interest_rate = forms.FloatField()
+
+
+class SetEekLevelBankForm(forms.Form):
+    new_eek_level = forms.IntegerField()
+    

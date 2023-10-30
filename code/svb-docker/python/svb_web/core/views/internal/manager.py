@@ -8,6 +8,10 @@ from datetime import datetime, timezone
 
 def initialize_bank(request):
     messages = []
+    bank_state = core.models.BankState.objects.all()
+    if len(bank_state) == 0:
+        initial_bank_state = core.models.BankState(eek_level=0)
+        initial_bank_state.save()
     try:
         reserves = core.models.Account.objects.get(account_name="RESERVES")
     except core.models.Account.DoesNotExist:
@@ -45,6 +49,15 @@ def update_rates(request):
     return [f"Set interest rates to {new_interest_rate} for {len(accounts)} accounts."]
 
 
+def set_eek_level(request):
+    new_eek_level = request.POST['new_eek_level']
+    # TODO: The below line likely to evolve as eek level does.
+    bank_state = core.models.BankState.objects.latest("timestamp")
+    if bank_state.eek_level != new_eek_level:
+         core.models.BankState(eek_level=new_eek_level).save()
+    return [f"Set current eek level to {new_eek_level}."]
+
+
 def manage_bank(request):
     action = request.POST['action']
     if action == 'initialize-bank':
@@ -53,7 +66,8 @@ def manage_bank(request):
         return freeze_rates(request)
     elif action == "update-rates":
         return update_rates(request)
-
+    elif action == "set-eek-level":
+        return set_eek_level(request)
 
 @login_required
 def management(request):
@@ -66,5 +80,6 @@ def management(request):
         "initialize_bank_form": core.forms.InitializeBankForm(initial={'initial_bank_reserves': 1000}),
         "freeze_interest_rates_form": core.forms.FreezeRatesBankForm(),
         "update_interest_rates_form": core.forms.UpdateRatesBankForm(),
+        "set_eek_level_form": core.forms.SetEekLevelBankForm(),
         }
     return render(request, "internal/management.html", context)
