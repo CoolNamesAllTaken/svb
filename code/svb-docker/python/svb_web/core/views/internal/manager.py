@@ -43,7 +43,8 @@ def freeze_rates(request):
 
 def update_rates(request):
     new_interest_rate = request.POST['new_interest_rate']
-    accounts = core.models.Account.objects.all()
+    accounts = core.models.Account.objects.exclude(account_name="RESERVES")\
+        .exclude(account_name="DISBURSED").all()
     for account in accounts:
         account.set_interest_rate(new_interest_rate)
     return [f"Set interest rates to {new_interest_rate} for {len(accounts)} accounts."]
