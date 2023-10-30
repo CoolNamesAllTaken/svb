@@ -141,18 +141,25 @@ class ReceiptPrinter(models.Model):
         # censored_account_id = 5 * "*" + account.account_number[-4:]
         # self._client.text(f"Account Number: {censored_account_id}")
 
+    def _print_customer_info(self, customer: Customer):
+        self._client.open()
+        self._client.set(align="center")
+        self._client.text("CUSTOMER PAGE")
+        self._client.qr(customer.get_absolute_url())
 
 
     def print_deposit_receipt(self, customer: Customer) -> None:
         self._client.open()
         self._print_header()
         self._client.text("deposit receipt")
+        self._print_customer_info(customer)
         self._client.cut()
 
     def print_withdrawal_receipt(self, customer: Customer) -> None:
         self._client.open()
         self._print_header()
         self._client.text("withdraw receipt")
+        self._print_customer_info(customer)
         self._client.cut()
 
 
