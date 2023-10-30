@@ -293,6 +293,7 @@ class NewsArticle(models.Model):
     date_published = models.DateTimeField(blank=True, null=True)
     preview = models.TextField(blank=True, null=True)  # "Candy companies are shrinking their products to save money. Is this a good thing?"
     body = models.TextField(blank=True, null=True)  # "Avid trick-or-treaters know the golden rule of treating: bigger is always better. <paragraphs of drivel>"
+    eek_level = models.IntegerField(default=0)
 
     def __str__(self):
         return f'"{self.headline}" by {self.author.name}'
@@ -326,3 +327,5 @@ class ReceiptPrinter(models.Model):
         self._client.cut()
 
 
+class BankState(models.Model):
+    eek_level = models.IntegerField(default=0)
