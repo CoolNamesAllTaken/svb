@@ -131,8 +131,17 @@ class ReceiptPrinter(models.Model):
         small_banner_img = default_banner_img.resize(
             [x // 4 for x in default_banner_img.size]
         )
+        self._client.open()
         self._client.set(align="center")
         self._client.image(small_banner_img)
+
+    def _print_account_info(self, account: Account):
+        self._client.open()
+        self._client.set(align="left")
+        censored_account_id = 5 * "*" + account.account_number[-4:]
+        self._client.text(f"Account Number: {censored_account_id}")
+        
+
 
     def print_deposit_receipt(self, account: Account) -> None:
         self._client.open()
