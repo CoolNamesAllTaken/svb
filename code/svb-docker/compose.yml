@@ -38,7 +38,7 @@ services:
     env_file:
       - .env.svb
     volumes:
-      - svb-django-db:/var/lib/mysql
+      - svb-django-db:/var/lib/postgresql/data
 
   site:
     # image specified in Dockerfile
@@ -57,7 +57,8 @@ services:
     depends_on:
       - db
     entrypoint: >
-      sh -c "python3 manage.py runserver 0.0.0.0:8000"
+      sh -c "python3 -u manage.py runserver 0.0.0.0:8000"
+    # start website on port 8000 in unbuffered mode
     # entrypoint: "/bin/sh -c 'while :; do sleep 100s; done;'"  #, "svb_web/manage.py", "runserver", "0.0.0.0:8000"]
 
 volumes:

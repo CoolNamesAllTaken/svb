@@ -2,10 +2,11 @@
 <html>
 
 <head>
-    {% block title %}<title>Silicandy Valley Bank Internal Page</title>{% endblock %}
+    {% block title %}<title>Silicandy Valley Bank Public Page</title>{% endblock %}
     {% load static %}
     <link rel='stylesheet' href="{% static 'css/bootstrap.min.css' %}">
     <link rel='stylesheet' href="{% static 'css/styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
     crossorigin="anonymous"></script>
@@ -18,37 +19,13 @@
     {% block nav_bar %}
     <nav class="navbar navbar-expand navbar-light bg-light">
         <a class="navbar-brand" href="/">
-          <img src="{% static 'core/assets/svb_banner_transparent.png' %}" height="60" alt="">
+          <img src="{% static 'core/assets/svb_banner_transparent.png' %}" style="height: 10vh" alt="">
         </a>
 
         <ul class="navbar-nav">
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Banker
-              </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="/internal/account/create">Create Account</a>
-                <a class="dropdown-item" href="/internal/account/lookup">Lookup Account</a>
-                <a class="dropdown-item" href="/internal/account/balance">Edit Balance</a>
-              </div>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/branch_services/create_id">Author</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/branch_services/lookup_id"></a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/branch_services/create_ticket">Create Ticket</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Displays
-              </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="/branch_services/window/1">Reserves Display</a>
-              </div>
-            </li>
+            <!-- <li class="nav-item">
+                <a class="nav-link" href="/account">Account page</a>
+              </li>             -->
         </ul>
     </nav>
     <!-- <img src="{% static 'branch_services/dtv_composite_logo_medium.png' %}"> -->

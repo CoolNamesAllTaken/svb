@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
   {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
+  <!-- Enable responsive mobile interface: -->
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <head>
     <meta charset="utf-8">
     <title>Silicandy Valley Bank</title>
@@ -10,6 +13,10 @@
       <div>{{ message }}</div>
     {% endfor %}
     {% block content %} {% endblock content %}
-    {% include "../snippets/news_feed.html" with articles=articles show_editor_fields=False %}
+    <div class="base-newsfeed-wrapper">
+      <div class="base-newsfeed">
+        {% include "./snippets/news_feed.html" with articles=articles show_editor_fields=False %}
+      </div>
+    </div>
   </body>
 </html>

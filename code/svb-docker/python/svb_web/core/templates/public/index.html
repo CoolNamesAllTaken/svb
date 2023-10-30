@@ -1,32 +1,148 @@
 {% extends "public/base.html" %}
-
+{% load static %}
 {% block content %}
-<div class="p-5">
-    <h1>DTV Branch Services Home Page</h1>
-    <div class="row mt-2">
-        <div class="col-sm p-0 m-4 bg-light">
-            <h2 class="p-2 bg-dark text-white text-center">Stats</h2>
-            <div class="p-2 m-4 bg-info text-white text-center">
-                <h3>Number of IDs Created</h2>
-                <h3>{{ num_ids_created }}</h3>
-            </div>
-            <div class="p-2 m-4 bg-info text-white text-center">
-                <h3>Open Windows</h2>
-                <h3>{{ num_windows }}</h3>
-            </div>
-            <div class="p-2 m-4 bg-info text-white text-center">
-                <h3>Current Wait Time</h2>
-                <h3>{{ wait_time }} minutes</h3>
-            </div>
-        </div>
-        <div class="col-sm p-0 m-4 bg-light">
-            <h2 class="p-2 bg-dark text-white text-center">Last Treat License Created</h2>
-            <img src="data:image/png;base64,{{id_card_image_data}}" class="img-fluid p-2">
-        </div>
-    </div>
-    
+<div>
+    <img src="{% static 'core/assets/wheat-field.jpg' %}"
+    style="height: 50vh; width: 100vw; object-fit: cover; opacity: 0.8;" alt="Woman running through a wheat field">
 </div>
+<h1 class="header-overlay-text">Banks walk. We run.</h1>
+<div class="dark-section">
+    <h2>We serve investors across houses, streets, and neighborhoods</h2>
+    <p>SVB is the go-to treat partner for discerning trick-or-treaters in the costume ecosystem and beyond.</p>
+    <div class="center-container">
+        <span class="dark-icon material-symbols-outlined">
+            house
+        </span>
+        <span class="dark-icon material-symbols-outlined">
+            house
+        </span>
+        <span class="dark-icon material-symbols-outlined">
+            house
+        </span>
+        <span class="dark-icon material-symbols-outlined">
+            house
+        </span>
+        <span class="dark-icon material-symbols-outlined">
+            nature_people
+        </span>
+        <span class="dark-icon material-symbols-outlined">
+            house
+        </span>
+    </div>
+</div>
+<div class="light-section">
+    <h2>The latest from our candy correspondents</h2>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap;">
+        {% for article in articles %}
+            <div class="article-card">
+                <!-- <img class="card-img-top" src="https://picsum.photos/800/300" alt="Card image cap"> -->
+                <div class="card-body">
+                    <h3 class="card-title">{{ article.headline }}</h3>
+                    <h4 class="card-subtitle mb-2 text-muted">By {{ article.author.name }}</h4>
+                    <p class="card-text">
+                        {{ article.preview }}
+                    </p>
+                    <a href="/article/{{ article.headline }}/" style="color: #113148" class="card-link">Learn more</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<div class="dark-section">
+    <div id="big-scary-graph"></div>
+</div>
+<div class="light-section">
+    <p class="fine-print">
+        ©2023 Pants For Birds. Silicandy Valley Bank. Member FTIC. 
+    </p>
+    <p class="fine-print">1 Free checking through SVB Website available for up to three hours from account
+        opening on included services. Transactions processed, such as for overdrafts, NSF's, returned and collection
+        items will not incur a fee, because that's what “free” should mean. Ask a branch teller for additional terms
+        and details on the free checking available with SVB Website.
+    </p>
+    <p class="fine-print">2 Candy transactions can be highly risky, and losses may occur in short periods of time if
+        there is an adverse movement of exchange rates. Exchange rates can be highly volatile and are impacted by numerous
+        spookiness, costume-driven, and Halloweeny factors as well as supply and demand and Treat Administration intervention,
+        control and adjustments. Investments in sugary instruments carry significant risk, including the possible loss of the
+        principal amount invested, or the whole instrument if you spill water on it. Before entering any foreign exchange
+        transaction, you should obtain advice from your own local Counts (such as Dracula) and only make investment decisions
+        on the basis of your own objectives, in-character experience and existing candy resources.
+    </p>
+</div>
+    
+{{historical_assets|json_script:"historicalAssets"}}
+{{historical_obligations|json_script:"historicalObligations"}}
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js" charset="utf-8"></script>
+<script>
+    HISTORICAL_ASSETS = JSON.parse(document.getElementById("historicalAssets").textContent)
+    HISTORICAL_OBLIGATIONS = JSON.parse(document.getElementById("historicalObligations").textContent)
+    const assetsOverTime = {
+            x: [],
+            y: [],
+            name: 'Assets',
+            type: 'scatter',
+            mode: 'lines+markers',
+            marker: {
+                color: "#113148",
+            }
+        }
+    const obligationsOverTime = {
+            x: [],
+            y: [],
+            name: 'Obligations',
+            type: 'scatter',
+            mode: 'lines+markers',
+            marker: {
+                color: "#57c0fd",
+            }
+        }
+    const COMPOUNDING_INTERVAL_SECONDS = 1800
+    const LAYOUT = {
+        font: {
+            size: 25,
+        },
+        xaxis: {
+            nticks: 5,
+        },
+        yaxis: {
+            nticks: 5,
+        },
+        legend: {
+            orientation: "h",
+            x: 0,
+            y: -0.5,
+        },
+    }
 
+
+    function applyCallbackToBigGraph() {
+        // console.log(ACCOUNTS_DATA)
+        const graph = document.getElementById('big-scary-graph')
+        backfillBigScaryGraph()
+        Plotly.newPlot(`big-scary-graph`, [assetsOverTime, obligationsOverTime],
+                layout=LAYOUT,
+                {staticPlot: true}
+            )
+    }
+
+
+    function convertTimestampToPlotlyDatetime(timestamp) {
+        const date = new Date(timestamp * 1000)
+        return date
+    }
+
+    function backfillBigScaryGraph() {
+        for (const dataPoint of HISTORICAL_OBLIGATIONS){
+            obligationsOverTime.x.push(convertTimestampToPlotlyDatetime(dataPoint.x))
+            obligationsOverTime.y.push(dataPoint.y)
+        }
+        for (const dataPoint of HISTORICAL_ASSETS){
+            assetsOverTime.x.push(convertTimestampToPlotlyDatetime(dataPoint.x))
+            assetsOverTime.y.push(dataPoint.y)
+        }
+    }
+    applyCallbackToBigGraph()
+</script>
 <!-- <script>
     function autoRefresh() {
         window.location = window.location.href;

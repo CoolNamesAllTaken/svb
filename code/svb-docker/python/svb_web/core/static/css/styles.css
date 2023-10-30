@@ -1,19 +1,80 @@
-.tickets-window {
-    background-color: black;
+body {
+    color: #2f4a5f;
+}
+
+.header-overlay-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-80%, -80%);
+    font-size: 10vh;
     color: white;
-    font-size: xx-large;
-    font-family: sans-serif;
-    padding: 10px;
-}
+    font-weight: bolder;
+  }
 
-.tickets-window th {
-    background-color: grey;
+
+.dark-section {
+    height: auto;
+    width: 100vw;
+    background-color: #113148;
     color: white;
-    border: 5px solid black;
-    padding: 10px;
+    padding: 2vh;
+    font-size: 2vh;
 }
 
-.tickets-window td {
-    text-align: center;
+.dark-section h2{
+    font-size: 3vh;
 }
 
+.dark-section .dark-icon {
+    font-size: 8vh;
+    color: #2f4a5f;
+}
+
+.light-section {
+    height: auto;
+    width: 100vw;
+    background-color: #f3f5f7;
+    padding: 2vh;
+    font-size: 2vh;
+}
+
+.light-section h2{
+    font-size: 3vh;
+}
+
+.light-section .light-icon {
+    font-size: 8vh;
+    color: #2f4a5f;
+}
+
+
+.center-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.article-card {
+    border-top: 0.5vh solid #57c0fd;
+    background-color: white;
+    border-radius: 5px;
+    width: 50vh;
+    height: auto;
+    margin: 1vh;
+    padding: 1vh;
+}
+
+.article-card h3{
+    font-size: 2.5vh;
+}
+
+.article-card h4{
+    font-size: 2vh;
+}
+
+
+.fine-print {
+    font-size: 1.2vh;
+    color: #2f4a5f;
+}

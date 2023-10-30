@@ -29,10 +29,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if os.getenv("DJANGO_DEBUG"):
+    DEBUG = True
+else:
+    DEBUG = False
+TESTING = os.getenv("TESTING", 0)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "svb.pantsforbirds.com",
+    "localhost"
+]
 
+CSRF_TRUSTED_ORIGINS = ['https://svb.pantsforbirds.com']
 
 # Application definition
 
@@ -80,16 +88,28 @@ WSGI_APPLICATION = 'svb_web.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT')
+if TESTING:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': "db.sqlite3",
+            'USER': "user",
+            'PASSWORD': "password",
+            'HOST': "localhost",
+            'PORT': 5432,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': os.getenv('POSTGRES_DB', "test"),
+            'USER': os.getenv('POSTGRES_USER', "test"),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', "test"),
+            'HOST': os.getenv('POSTGRES_HOST', "localhost"),
+            'PORT': os.getenv('POSTGRES_PORT', 5432)
+        }
+    }
 
 
 # Password validation
@@ -110,6 +130,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_URL = "/internal/login/"
+LOGIN_REDIRECT_URL = "/internal/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

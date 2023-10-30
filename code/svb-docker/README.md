@@ -10,12 +10,14 @@ Windows: Install Git Bash.
 2. Run `docker compose up --build`. Run with the `-d` option if you want it to be detached (non-interactive).
 
 ## Bring Stuff Up
-`docker compose up --build`
+Development: `docker compose up --build`
+Production: `docker compose -f compose.prod.yml --build`
 
 ### Just add/modify a model?
 Run migrations!
 `docker compose -f compose.yml exec site python manage.py makemigrations`
 Then `docker compose -f compose.yml exec site python manage.py migrate`
+Be sure to commit your migrations with your code!
 
 ## Where is everything?
 1. Container configuration info: `docker-compose.yaml`.
