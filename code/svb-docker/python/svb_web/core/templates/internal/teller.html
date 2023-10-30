@@ -1,0 +1,17 @@
+{% extends "internal/base.html" %}
+{% load static %}
+{% block content %}
+<div>
+    <h1>Silicandy Valley Bank Internal Website</h1>
+    <h2>Teller Interface</h2>
+    {{ messages }}
+
+    <!-- <form id="initialize-bank" method="post">
+        {% csrf_token %}
+        {% include "../snippets/form_renderer.html" with form=initialize_bank_form %}
+        <button type="submit" name="action" value="initialize-bank">Initialize bank</button>
+    </form>
+     -->
+</div>
+
+{% endblock %}

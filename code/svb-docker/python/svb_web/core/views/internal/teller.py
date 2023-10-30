@@ -4,6 +4,8 @@ from core.models import Customer
 from django.contrib.auth.decorators import login_required
 from core.forms import CustomerLookupForm
 
+
+@login_required
 def lookup_accounts(request, customer_id=None):
     """
     @brief View function that allows looking up a Customer's accounts using their customer ID.
@@ -37,3 +39,9 @@ def lookup_accounts(request, customer_id=None):
     }
     
     return render(request, "internal/lookup_accounts.html", context)
+
+
+@login_required
+def edit_accounts(request, customer_id=None):
+    context = {}
+    return render(request, "internal/teller.html", context)

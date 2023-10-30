@@ -18,6 +18,7 @@ urlpatterns = [
     path('internal/customer/create/', views.internal.banker.edit_customer, name='internal_create_customer'),
     path('internal/customer/lookup/', views.internal.banker.lookup_customer, name='internal_lookup_customer'),
     path('internal/customer/edit/<str:customer_id>/', views.internal.banker.edit_customer, name='internal_edit_customer'),
+    path('internal/accounts/edit/<str:customer_id>/', views.internal.teller.edit_accounts, name='edit_accounts'),
     path('internal/management/', views.internal.manager.management, name='management'),
     path('internal/', include("django.contrib.auth.urls")),
     path('internal/testing/populate_db/', views.internal.populate_db.populate_db),
