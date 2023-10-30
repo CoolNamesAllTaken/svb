@@ -1,9 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 import core.models
-from django.http import JsonResponse
 import core.forms
-from datetime import datetime, timezone
 
 
 def initialize_bank(request):
