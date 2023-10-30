@@ -1,7 +1,70 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+import core.models
+from django.http import JsonResponse
+import core.forms
+from datetime import datetime, timezone
+
+
+def initialize_bank(request):
+    messages = []
+    try:
+        reserves = core.models.Account.objects.get(account_name="RESERVES")
+    except core.models.Account.DoesNotExist:
+        reserves = core.models.Account(pk=0, account_name="RESERVES")
+        reserves.save()
+        balance = request.POST['initial_bank_reserves']
+        reserves.init(balance=balance)
+        messages.append(f"Created account 'reserves' with balance {balance}.")
+    else:
+        messages.append("Account 'reserves' already exists.")
+    try:
+        disbursed = core.models.Account.objects.get(account_name="DISBURSED")
+    except core.models.Account.DoesNotExist:
+        disbursed = core.models.Account(pk=1, account_name="DISBURSED")
+        disbursed.save()
+        disbursed.init(balance=0)
+        messages.append("Created account 'disbursed'.")
+    else:
+        messages.append("Account 'disbursed' already exists.")
+    return messages
+
+
+def freeze_rates(request):
+    accounts = core.models.Account.objects.all()
+    for account in accounts:
+        account.set_interest_rate(0)
+    return [f"Set interest rates to 0 for {len(accounts)} accounts."]
+
+
+def update_rates(request):
+    new_interest_rate = request.POST['new_interest_rate']
+    accounts = core.models.Account.objects.all()
+    for account in accounts:
+        account.set_interest_rate(new_interest_rate)
+    return [f"Set interest rates to {new_interest_rate} for {len(accounts)} accounts."]
+
+
+def manage_bank(request):
+    action = request.POST['action']
+    if action == 'initialize-bank':
+        return initialize_bank(request)
+    elif action == "freeze-rates":
+        return freeze_rates(request)
+    elif action == "update-rates":
+        return update_rates(request)
+
 
 @login_required
 def management(request):
-    context = {}
+    messages = []
+    if request.method == 'POST':
+        if 'action' in request.POST:
+            messages = manage_bank(request)
+    context = {
+        "messages": messages,
+        "initialize_bank_form": core.forms.InitializeBankForm(initial={'initial_bank_reserves': 1000}),
+        "freeze_interest_rates_form": core.forms.FreezeRatesBankForm(),
+        "update_interest_rates_form": core.forms.UpdateRatesBankForm(),
+        }
     return render(request, "internal/management.html", context)

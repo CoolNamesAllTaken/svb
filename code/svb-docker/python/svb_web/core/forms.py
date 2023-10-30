@@ -89,3 +89,14 @@ class AuthorForm(forms.ModelForm):
     class Meta:
         model = NewsAuthor
         fields = ['name', 'title']
+
+
+class InitializeBankForm(forms.Form):
+    initial_bank_reserves = forms.IntegerField()
+
+
+class FreezeRatesBankForm(forms.Form):
+    pass
+
+class UpdateRatesBankForm(forms.Form):
+    new_interest_rate = forms.FloatField()

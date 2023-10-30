@@ -1,8 +1,29 @@
 {% extends "internal/base.html" %}
-
+{% load static %}
 {% block content %}
 <div>
     <h1>Silicandy Valley Bank Internal Website</h1>
+    {{ messages }}
+    
+    <form id="initialize-bank" method="post">
+        {% csrf_token %}
+        {% include "../snippets/form_renderer.html" with form=initialize_bank_form %}
+        <button type="submit" name="action" value="initialize-bank">Initialize bank</button>
+    </form>
+
+    <form id="freeze-rates-bank" method="post">
+        {% csrf_token %}
+        {% include "../snippets/form_renderer.html" with form=freeze_interest_rates_form %}
+        <button type="submit" name="action" value="freeze-rates">Freeze all interest rates</button>
+    </form>
+
+    <form id="update-rates-bank" method="post">
+        {% csrf_token %}
+        {% include "../snippets/form_renderer.html" with form=update_interest_rates_form %}
+        <button type="submit" name="action" value="update-rates">Update all interest rates</button>
+    </form>
+
+    <button disabled>Set "eek level"</button>
     
 </div>
 
