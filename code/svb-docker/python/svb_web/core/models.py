@@ -327,35 +327,32 @@ class ReceiptPrinter(models.Model):
         small_banner_img = default_banner_img.resize(
             [x // 4 for x in default_banner_img.size]
         )
-        self._client.open()
         self._client.set(align="center")
         self._client.image(small_banner_img)
+        self._client.text("\n")
 
     def _print_account_info(self, customer: Customer):
-        self._client.open()
         self._client.set(align="left")
-        # censored_account_id = 5 * "*" + account.account_number[-4:]
-        # self._client.text(f"Account Number: {censored_account_id}")
+        accounts = Account.objects.filter(customer__exact=customer.customer_id)
+        NUM_CHARS_SHOWN = 4
+        for account in accounts:
+            padded_account_id = NUM_CHARS_SHOWN * "0" + str(account.account_number)
+            censored_account_id = 5 * "*" + padded_account_id[-NUM_CHARS_SHOWN:]
+            self._client.text(f"Account Number: {censored_account_id}\n")
+            self._client.text(f"Account Balance: {account.get_balance()}\n")
+            self._client.text(10 * "#" + "\n")
 
     def _print_customer_info(self, customer: Customer):
-        self._client.open()
         self._client.set(align="center")
-        self._client.text("CUSTOMER PAGE")
-        self._client.qr(customer.get_absolute_url())
+        self._client.text("CUSTOMER PAGE\n")
+        self._client.qr(customer.get_absolute_url(), size=10)
 
 
-    def print_deposit_receipt(self, customer: Customer) -> None:
+    def print_transaction_receipt(self, customer: Customer) -> None:
         self._client.open()
         self._print_header()
-        self._client.text("deposit receipt")
+        self._print_account_info(customer)
         self._print_customer_info(customer)
         self._client.cut()
-
-    def print_withdrawal_receipt(self, customer: Customer) -> None:
-        self._client.open()
-        self._print_header()
-        self._client.text("withdraw receipt")
-        self._print_customer_info(customer)
-        self._client.cut()
-
+        self._client.close()
 

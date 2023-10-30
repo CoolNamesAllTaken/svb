@@ -1,17 +1,26 @@
+{% comment %}
+    This snippet is meant to be included in other HTML templates.
+    Usage Example:
+        {% include "snippets/print_stub.html %}
+    Expected Context Variables:
+        # variable_name: description
+        customer_id: primary key for a Customer record
+        printer_names: list of printer names (primary keys for ReceiptPrinter records)
+{% endcomment %}
+
 <form action="{% url 'print_receipt' %}" method="post">
     {% csrf_token %}
     <fieldset>
         <legend><h1>Network Printers</h1></legend>
-        {% for name in printer_names %}
-            <input type="radio" name="printer_name" value="{{ name }}">
-            <label>{{ name }}</label><br>
-        {% empty %}
-            <label>No Printers found in database.</label>
-        {% endfor %}
-        <label>Account ID:</label>
-        <input type="text" name="account_number"><br>
-        <label>Receipt Type:</label>
-        <input type="text" name="receipt_type">
+
+        <label for="network_printers">Receipt Printers</label>
+        <select name="printer_name" id="network_printers">
+            {% for name in printer_names %}
+                <option value="{{ name }}"> {{ name }} </option>
+            {% endfor %}
+        </select> 
+        <input type="hidden" name="customer_id" value="{{customer_id}}">
+        <input type="submit" value="PRINT">
     </fieldset>
-    <input type="submit" value="PRINT">
 </form>
+
