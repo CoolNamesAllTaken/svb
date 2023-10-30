@@ -329,3 +329,4 @@ class ReceiptPrinter(models.Model):
 
 class BankState(models.Model):
     eek_level = models.IntegerField(default=0)
+    timestamp = models.DateTimeField(default=datetime.now)
