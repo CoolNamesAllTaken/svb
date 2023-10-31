@@ -16,12 +16,17 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-load_dotenv(Path('../../../.env'))
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ROOT_DOMAIN = "svb.pantsforbirds.com" # Custom (not used by Django). Used in SVB modules for absolute paths.
+# Custom Variables
+# Added for convenience, in case anyone else wants to access .env variables that aren't loaded here.
+ENV_FILE_PATH = Path('../../../.env.svb')
+load_dotenv(ENV_FILE_PATH)
+# Custom (not used by Django). Used in SVB modules for absolute paths.
+ROOT_DOMAIN = os.getenv('DJANGO_ROOT_DOMAIN', "svb.pantsforbirds.com")
+# Password required to reset the whole website from the manager interface.
+SCARY_RESET_PASSWORD = os.getenv('DJANGO_SCARY_RESET_PASSWORD', "reset")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/

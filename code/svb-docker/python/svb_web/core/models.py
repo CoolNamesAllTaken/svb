@@ -4,8 +4,11 @@ from django.db import models
 from datetime import date, datetime, timezone
 from core.utils.debit_card import assemble_debit_card_image, encode_debit_card_image
 import math
-import os.path
+import os
 import escpos.printer
+
+# For receipt printing
+import PIL.Image
 
 from django.conf import settings
 
@@ -15,10 +18,10 @@ def get_current_utc_timestamp():
     """
     return datetime.now(tz=timezone.utc)
 
-
-class IdCardPrintJob(models.Model):
-    pass
-
+class DebitCardPrintJob(models.Model):
+    job_number = models.AutoField(primary_key=True)
+    timestamp = models.DateTimeField(default=get_current_utc_timestamp) # Pass handle to datetime.now so it gets evaluated when the model is created, not defined!
+    debit_card_file_bytes = models.BinaryField(null=True, blank=True)
 
 class Customer(models.Model):
     def __str__(self) -> str:
@@ -103,7 +106,9 @@ class Customer(models.Model):
 class Account(models.Model):
     ACCOUNT_NAME_MAX_LENGTH = 80 # maximum number of characters for the account name
 
-    account_number = models.AutoField(primary_key=True)
+    # Primary key gets written in the save function. Can submit it as blank, but it needs
+    # to be saved as non null.
+    account_number = models.IntegerField(primary_key=True, blank=True)
     account_name = models.CharField(default="", max_length=ACCOUNT_NAME_MAX_LENGTH)
     customer = models.ForeignKey(
         "Customer",
@@ -111,6 +116,27 @@ class Account(models.Model):
         null=True, # allow NULL values in storage
         on_delete=models.CASCADE # delete Account when associated Customer is deleted
     )
+
+    def save(self, *args, **kwargs):
+        """
+        @brief Save function override that fixes issues with accounts stomping on the reserved
+        account primary keys. Also names unnamed Customer accounts.
+        """
+        # Set customer accounts to their customer_id as default account name.
+        if self.account_name == "" and self.customer:
+            self.account_name = Customer.objects.get(pk=self.customer).customer_id
+        
+        # Reserve account numbers 0 and 1 for virtual accounts.
+        if self.account_name == "RESERVES":
+            self.account_number = 0
+        elif self.account_name == "DISBURSED":
+            self.account_number = 1
+        else:
+            # Set non-special accounts to a number above 1.
+            self.account_number = 2 + Account.objects.filter().count() - \
+                (Account.objects.filter(pk__exact=0).count() + Account.objects.filter(pk__exact=1).count())
+
+        super(Account, self).save(*args, **kwargs) # call super save function
 
     # Account balance at current timestamp can be calculated from previous anchor event
     # timestamp and anchor event account balance.
@@ -349,11 +375,8 @@ class ReceiptPrinter(models.Model):
         )
 
     def _print_header(self):
-        import os
-        import PIL.Image
-        from svb_web.settings import STATIC_ROOT
         banner_pathname = os.path.join(
-            STATIC_ROOT,
+            settings.STATIC_ROOT,
             "core",
             "assets",
             "svb_banner.png"
@@ -365,6 +388,13 @@ class ReceiptPrinter(models.Model):
         self._client.set(align="center")
         self._client.image(small_banner_img)
         self._client.text("\n")
+    
+    def _print_referral_tabs(self, customer: Customer, num_tabs: int=5):
+        customer_referral_reward_amount = BankState.objects.latest("timestamp").customer_referral_reward_amount
+        for tab in range(num_tabs):
+            self._client.text(f"{customer.first_name} {customer.costume} says:")
+            self._client.text(f"Get an extra {customer_referral_reward_amount}* treat credits by using my referral code!")
+            self._client.qr(customer.get_absolute_url(), size=2)
 
     def _print_account_info(self, customer: Customer):
         self._client.set(align="left")
@@ -384,16 +414,33 @@ class ReceiptPrinter(models.Model):
 
 
     def print_transaction_receipt(self, customer: Customer) -> None:
+        num_tabs = 5
         self._client.open()
         self._print_header()
         self._print_account_info(customer)
         self._print_customer_info(customer)
         self._client.cut()
+        # customer_referral_reward_amount = BankState.objects.latest("timestamp").customer_referral_reward_amount
+        # for tab in range(num_tabs):
+        #     print(f"{customer.first_name} {customer.costume} says:")
+        #     self._client.text(f"{customer.first_name} {customer.costume} says:")
+        #     self._client.text(f"Get an extra {customer_referral_reward_amount}* treat credits by using my referral code!")
+            # self._client.qr(customer.get_absolute_url(), size=2)
+        # self._print_referral_tabs(customer)
+        self._client.close()
+    
+    def print_new_customer_receipt(self, customer: Customer) -> None:
+        self._client.open()
+        self._print_header()
+        self._print_account_info(customer)
+        self._print_customer_info(customer)
+        self._client.cut()
+
         self._client.close()
 
 class BankState(models.Model):
     eek_level = models.IntegerField(default=0)
-    new_customer_starting_interest_rate = models.FloatField(default=0.0, blank=True, null=True)
-    new_customer_starting_balance = models.DecimalField(decimal_places=3, max_digits=10, blank=True, null=True)
-    customer_referral_reward_amount = models.DecimalField(decimal_places=3, max_digits=10, blank=True, null=True)
+    new_customer_starting_interest_rate = models.FloatField(default=0.0, blank=True)
+    new_customer_starting_balance = models.DecimalField(default=2.0, decimal_places=3, max_digits=10, blank=True)
+    customer_referral_reward_amount = models.DecimalField(default=1.0, decimal_places=3, max_digits=10, blank=True)
     timestamp = models.DateTimeField(default=datetime.now)

@@ -29,6 +29,11 @@
         <button type="submit" name="action" value="set-eek-level">Set "eek level"</button>
     </form>
     
+    <form id="scary-reset-bank" method="post">
+        {% csrf_token %}
+        {% include "../snippets/form_renderer.html" with form=scary_reset_bank_form %}
+        <button type="submit" name="action" value="scary-reset-bank">Reset Bank"</button>
+    </form>
 </div>
 
 {% endblock %}

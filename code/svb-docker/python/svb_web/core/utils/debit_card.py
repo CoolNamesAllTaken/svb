@@ -31,6 +31,8 @@ CANDY_BAR_IMAGE_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
 DEBIT_CARD_FONT_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "static", "core", "debit_card", "Arial.ttf")
 DEBIT_CARD_BOLD_FONT_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "static", "core", "debit_card", "Arial_Bold.ttf")
 
+"""Public Functions"""
+
 def parse_customer_id_from_url(url: str):
     """
     @brief Parses a URL of type svb.pantsforbirds.com/c/<customer_id> and returns just the customer ID.
@@ -44,8 +46,6 @@ def parse_customer_id_from_url(url: str):
     url = url[domain_beginning+len(customer_domain):]
     tokenized_url = url.split('/')
     return tokenized_url[0] # just return the customer in case there's stuff afterwards
-
-"""Public Functions"""
 
 def assemble_debit_card_image(
     output_path,
@@ -76,6 +76,7 @@ def assemble_debit_card_image(
 
     qr_code_image = qrcode.make(customer_page_url, border = 0)
     qr_code_image = qr_code_image.resize((mm2pix(QR_CODE_SIDE_LENGTH_MM), mm2pix(QR_CODE_SIDE_LENGTH_MM)))
+    qr_code_image = qr_code_image
     debit_card.paste(qr_code_image, (mm2pix(QR_CODE_TOP_LEFT[0]), mm2pix(QR_CODE_TOP_LEFT[1])))
 
     candy_bar_image = Image.open(CANDY_BAR_IMAGE_PATH)
@@ -116,7 +117,9 @@ def assemble_debit_card_image(
 
     debit_card.save(output_path)
     if save_pdf:
-        debit_card.save(os.path.splitext(output_path)[0] + ".pdf")
+        debit_card.save(
+            os.path.splitext(output_path)[0] + ".pdf"
+        )
 
 def encode_debit_card_image(image_path):
     """

@@ -10,6 +10,7 @@ packages = [{include = "print_server"}]
 python = "^3.10"
 pywin32 = "^306"
 psycopg2 = "^2.9.9"
+pyyaml = "^6.0.1"
 
 
 [build-system]

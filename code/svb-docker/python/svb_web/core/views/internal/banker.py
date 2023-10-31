@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.conf import settings
-from core.models import Customer, Account, BankState
+from core.models import Customer, Account, BankState, DebitCardPrintJob, ReceiptPrinter
 from django.contrib.auth.decorators import login_required
 import os.path
 from core.forms import CustomerForm, CustomerLookupForm
@@ -124,18 +124,46 @@ def edit_customer(request, customer_id=None):
         'submit_button_label': submit_button_label,
         'customer_id': customer_id,
         'debit_card_front_image': encode_debit_card_image(os.path.join(settings.STATIC_ROOT, "core", "debit_card", "svb_debit_card_front.png")),
-        'debit_card_rear_image': debit_card_rear_image
+        'debit_card_rear_image': debit_card_rear_image,
+        'printer_names': [printer.name for printer in ReceiptPrinter.objects.all()],
+        "customer_id": Customer.objects.all()[0].customer_id,
     }
     return render(request, "internal/edit_customer.html", context)
 
-
 @login_required
-def lookup_account(request):
-    context = {}
-    return render(request, "internal/lookup_account.html", context)
+def print_debit_card(request, customer_id):
+    """
+    @brief Endpoint used for triggering print jobs of Debit cards.
+    @param[in] request HTTP request. POST to trigger a print, others rejected.
+    @param[in] license_number Unique ID of TreatLicense to print.
+    @retval JsonResponse dictionary with success and error_msg fields.
+    """
+    response_dict = {
+        'success': False,
+        'error_msg': ""
+    }
+    if request.method == 'POST':
+        # Someone is trying to send a print job.
+        try:
+            customer = get_object_or_404(Customer, pk=customer_id)
+        except:
+            response_dict['error_msg'] = "Could not find Customer with customer_id {}".format(customer_id)
+            return JsonResponse(response_dict)
+        try:
+            # Print a debit card by punting it onto the database. Let the print server deal with it!
+            with open (customer.get_debit_card_path(pdf=True), "rb") as debit_card_file_bytes:
+                print_job = DebitCardPrintJob(
+                    debit_card_file_bytes = debit_card_file_bytes.read()
+                )
+                print_job.save()
+        except Exception as e:
+            response_dict['error_msg'] = "Failed to print ID card with exception: {}.".format(e)
+            return JsonResponse(response_dict)
+        
+        response_dict['success'] = True
+       
+    else:
+        # Reject everything that isn't a POST request.
+        response_dict['error_msg'] = "Not a POST request."
 
-
-@login_required
-def edit_account(request):
-    context = {}
-    return render(request, "internal/edit_account.html", context)
+    return JsonResponse(response_dict)
