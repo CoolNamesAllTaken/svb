@@ -124,7 +124,7 @@ def edit_customer(request, customer_id=None):
         'submit_button_label': submit_button_label,
         'customer_id': customer_id,
         'debit_card_front_image': encode_debit_card_image(os.path.join(settings.STATIC_ROOT, "core", "debit_card", "svb_debit_card_front.png")),
-        'debit_card_rear_image': debit_card_rear_image
+        'debit_card_rear_image': debit_card_rear_image,
     }
     return render(request, "internal/edit_customer.html", context)
 

@@ -16,7 +16,7 @@ def get_current_utc_timestamp():
     return datetime.now(tz=timezone.utc)
 
 class DebitCardPrintJob(models.Model):
-    timestamp = models.DateTimeField(default=datetime.now) # Pass handle to datetime.now so it gets evaluated when the model is created, not defined!
+    timestamp = models.DateTimeField(default=get_current_utc_timestamp) # Pass handle to datetime.now so it gets evaluated when the model is created, not defined!
     debit_card_pdf_path = models.CharField(blank=False, null=False)
 
 class Customer(models.Model):
