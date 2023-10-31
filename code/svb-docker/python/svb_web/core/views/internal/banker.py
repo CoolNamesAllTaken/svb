@@ -1,9 +1,11 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.conf import settings
 from core.models import Customer
 from django.contrib.auth.decorators import login_required
+import os.path
 from core.forms import CustomerForm, CustomerLookupForm
-from core.utils.debit_card import *
+from core.utils.debit_card import encode_debit_card_image
 
 
 @login_required
@@ -61,9 +63,6 @@ def create_customer_from_form(form):
         customer.save() # Caitlin loves John a lot <3
         # Update the Customer model in the database with new info.
 
-    # TODO: Build and save debit card.
-    create_debit_card(customer)
-
     return customer
 
 
@@ -72,17 +71,18 @@ def edit_customer(request, customer_id=None):
     """
     @brief View function that allows editing of a Customer via a form submission.
     """
-    # form_message = "" # use this field for indicating errors
     if customer_id:
         # Editing an existing customer.
         customer = get_object_or_404(Customer, pk=customer_id)
         form_title = "Edit Existing Customer"
         submit_button_label = "Update"
+        debit_card_rear_image = encode_debit_card_image(customer.get_debit_card_path(pdf=False))
     else:
         # Creating a new customer.
         customer=None
         form_title = "Create New Customer"
         submit_button_label = "Create"
+        debit_card_rear_image = encode_debit_card_image(os.path.join(settings.STATIC_ROOT, "core", "debit_card", "svb_debit_card_rear_blank.png"))
 
     if request.method == 'POST':
         # POST = submitting a form to update customer info.
@@ -115,9 +115,10 @@ def edit_customer(request, customer_id=None):
     context = {
         'form': form,
         'form_title': form_title,
-        # 'form_message': form_message,
         'submit_button_label': submit_button_label,
         'customer_id': customer_id,
+        'debit_card_front_image': encode_debit_card_image(os.path.join(settings.STATIC_ROOT, "core", "debit_card", "svb_debit_card_front.png")),
+        'debit_card_rear_image': debit_card_rear_image
     }
     return render(request, "internal/edit_customer.html", context)
 
