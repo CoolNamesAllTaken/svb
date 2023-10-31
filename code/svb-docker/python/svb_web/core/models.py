@@ -5,6 +5,7 @@ from datetime import date, datetime, timezone
 from core.utils.debit_card import assemble_debit_card_image, encode_debit_card_image
 import math
 import os.path
+import escpos.printer
 
 from django.conf import settings
 
