@@ -27,7 +27,27 @@
         </div>
     </div>
 
-
 </div>
+
+<script>
+    function printFormStuff() {
+        const idUrl = '/internal/print_debit_card/{{ customer_id }}';
+        const data = {};
+        fetch(idUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken": '{{ csrf_token }}', 
+            },
+            body: JSON.stringify(data),
+            credentials: "same-origin"
+
+        })
+            .then((response) => response.json())
+            .then((data) => console.log(data));
+    }
+
+    document.getElementById('print-button').addEventListener('click', printFormStuff)
+</script>
 
 {% endblock %}

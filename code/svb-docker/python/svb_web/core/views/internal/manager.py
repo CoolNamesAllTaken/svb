@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 import core.models
 import core.forms
 
-
 def initialize_bank(request):
     messages = []
     bank_state = core.models.BankState.objects.all()
@@ -13,7 +12,7 @@ def initialize_bank(request):
     try:
         reserves = core.models.Account.objects.get(account_name="RESERVES")
     except core.models.Account.DoesNotExist:
-        reserves = core.models.Account(pk=0, account_name="RESERVES")
+        reserves = core.models.Account(account_name="RESERVES")
         reserves.save()
         balance = request.POST['initial_bank_reserves']
         reserves.init(balance=balance)
@@ -23,7 +22,7 @@ def initialize_bank(request):
     try:
         disbursed = core.models.Account.objects.get(account_name="DISBURSED")
     except core.models.Account.DoesNotExist:
-        disbursed = core.models.Account(pk=1, account_name="DISBURSED")
+        disbursed = core.models.Account(account_name="DISBURSED")
         disbursed.save()
         disbursed.init(balance=0)
         messages.append("Created account 'disbursed'.")
@@ -56,6 +55,21 @@ def set_eek_level(request):
          core.models.BankState(eek_level=new_eek_level).save()
     return [f"Set current eek level to {new_eek_level}."]
 
+def scary_reset_bank(request):
+    """
+    @brief Resets stuff that is created in the course of running the bank. Excludes core
+    infrastructure and articles.
+    """
+    form = core.forms.ScaryResetBankForm(request.POST, request.FILES)
+    if form.is_valid():
+        # Delete all customers, which should cascade to connected accounts.
+        core.models.Customer.objects.all().delete()
+        # Delete remaining accounts (non-customer accounts like RESERVES and DISBURSED).
+        core.models.Account.objects.all().delete()
+        return [f"The bank has been reset."]
+    else:
+        return [f"Scary reset password incorrect."]
+
 
 def manage_bank(request):
     action = request.POST['action']
@@ -67,6 +81,8 @@ def manage_bank(request):
         return update_rates(request)
     elif action == "set-eek-level":
         return set_eek_level(request)
+    elif action == "scary-reset-bank":
+        return scary_reset_bank(request)
 
 @login_required
 def management(request):
@@ -80,5 +96,6 @@ def management(request):
         "freeze_interest_rates_form": core.forms.FreezeRatesBankForm(),
         "update_interest_rates_form": core.forms.UpdateRatesBankForm(),
         "set_eek_level_form": core.forms.SetEekLevelBankForm(),
-        }
+        "scary_reset_bank_form": core.forms.ScaryResetBankForm()
+    }
     return render(request, "internal/management.html", context)

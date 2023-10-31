@@ -2,6 +2,8 @@ from django import forms
 from core.models import Customer, Account, NewsArticle, NewsAuthor
 from django.core.exceptions import ObjectDoesNotExist # used in CustomerForm
 
+from django.conf import settings # for access to some .env variables
+
 class CustomerLookupForm(forms.Form):
     customer_id = forms.CharField(max_length=Customer.CUSTOMER_ID_MAX_LENGTH)
 
@@ -79,6 +81,7 @@ class AccountTransactionForm(forms.Form):
                 f"To Account does not belong to customer with ID {cleaned_data['customer_id']}"
             )
         # Don't bother returning cleaned_data, not overriding anything.
+        
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = NewsArticle
@@ -110,4 +113,17 @@ class SetEekLevelBankForm(forms.Form):
 class MakeWithdrawalForm(forms.Form):
     withdrawal_amount = forms.IntegerField()
     account_number = forms.CharField()
+
+class ScaryResetBankForm(forms.Form):
+    reset_passcode = forms.CharField(required=True)
+
+    def clean(self):
+        """
+        @brief Nuke it, if the password is correct!
+        """
+        cleaned_data = super().clean()
+        if cleaned_data['reset_passcode'] != settings.SCARY_RESET_PASSWORD:
+            raise forms.ValidationError("Incorrect password, refusing to break everything.")
+        else:
+            print("(salute emoji)")
     

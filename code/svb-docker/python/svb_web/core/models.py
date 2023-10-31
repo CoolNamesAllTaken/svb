@@ -15,9 +15,9 @@ def get_current_utc_timestamp():
     """
     return datetime.now(tz=timezone.utc)
 
-class IdCardPrintJob(models.Model):
+class DebitCardPrintJob(models.Model):
     timestamp = models.DateTimeField(default=datetime.now) # Pass handle to datetime.now so it gets evaluated when the model is created, not defined!
-    id_card_pdf_path = models.CharField(blank=False, null=False)
+    debit_card_pdf_path = models.CharField(blank=False, null=False)
 
 class Customer(models.Model):
     def __str__(self) -> str:
@@ -102,7 +102,9 @@ class Customer(models.Model):
 class Account(models.Model):
     ACCOUNT_NAME_MAX_LENGTH = 80 # maximum number of characters for the account name
 
-    account_number = models.AutoField(primary_key=True)
+    # Primary key gets written in the save function. Can submit it as blank, but it needs
+    # to be saved as non null.
+    account_number = models.IntegerField(primary_key=True, blank=True)
     account_name = models.CharField(default="", max_length=ACCOUNT_NAME_MAX_LENGTH)
     customer = models.ForeignKey(
         "Customer",
@@ -110,6 +112,27 @@ class Account(models.Model):
         null=True, # allow NULL values in storage
         on_delete=models.CASCADE # delete Account when associated Customer is deleted
     )
+
+    def save(self, *args, **kwargs):
+        """
+        @brief Save function override that fixes issues with accounts stomping on the reserved
+        account primary keys. Also names unnamed Customer accounts.
+        """
+        # Set customer accounts to their customer_id as default account name.
+        if self.account_name == "" and self.customer:
+            self.account_name = Customer.objects.get(pk=self.customer).customer_id
+        
+        # Reserve account numbers 0 and 1 for virtual accounts.
+        if self.account_name == "RESERVES":
+            self.account_number = 0
+        elif self.account_name == "DISBURSED":
+            self.account_number = 1
+        else:
+            # Set non-special accounts to a number above 1.
+            self.account_number = 2 + Account.objects.filter().count() - \
+                (Account.objects.filter(pk__exact=0).count() + Account.objects.filter(pk__exact=1).count())
+
+        super(Account, self).save(*args, **kwargs) # call super save function
 
     # Account balance at current timestamp can be calculated from previous anchor event
     # timestamp and anchor event account balance.
@@ -392,7 +415,7 @@ class ReceiptPrinter(models.Model):
 
 class BankState(models.Model):
     eek_level = models.IntegerField(default=0)
-    new_customer_starting_interest_rate = models.FloatField(default=0.0, blank=True, null=True)
-    new_customer_starting_balance = models.DecimalField(decimal_places=3, max_digits=10, blank=True, null=True)
-    customer_referral_reward_amount = models.DecimalField(decimal_places=3, max_digits=10, blank=True, null=True)
+    new_customer_starting_interest_rate = models.FloatField(default=0.0, blank=True)
+    new_customer_starting_balance = models.DecimalField(decimal_places=3, max_digits=10, blank=True)
+    customer_referral_reward_amount = models.DecimalField(decimal_places=3, max_digits=10, blank=True)
     timestamp = models.DateTimeField(default=datetime.now)

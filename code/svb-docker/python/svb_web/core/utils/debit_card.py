@@ -31,6 +31,8 @@ CANDY_BAR_IMAGE_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
 DEBIT_CARD_FONT_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "static", "core", "debit_card", "Arial.ttf")
 DEBIT_CARD_BOLD_FONT_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "static", "core", "debit_card", "Arial_Bold.ttf")
 
+"""Public Functions"""
+
 def parse_customer_id_from_url(url: str):
     """
     @brief Parses a URL of type svb.pantsforbirds.com/c/<customer_id> and returns just the customer ID.
@@ -44,8 +46,6 @@ def parse_customer_id_from_url(url: str):
     url = url[domain_beginning+len(customer_domain):]
     tokenized_url = url.split('/')
     return tokenized_url[0] # just return the customer in case there's stuff afterwards
-
-"""Public Functions"""
 
 def assemble_debit_card_image(
     output_path,
