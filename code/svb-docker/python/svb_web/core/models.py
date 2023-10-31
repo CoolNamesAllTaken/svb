@@ -6,6 +6,7 @@ from core.utils.debit_card import assemble_debit_card_image, encode_debit_card_i
 import math
 import os
 import escpos.printer
+import datetime
 
 # For receipt printing
 import PIL.Image
@@ -411,6 +412,18 @@ class ReceiptPrinter(models.Model):
             self._printer.text(f"Account Balance: {account.get_balance()}\n")
             self._printer.text(10 * "#" + "\n")
             self._printer.text(f"30 min interest rate: {account.get_interest_rate()}\n")
+    
+    def _print_transaction_info(self, anchor_event: AnchorEvent):
+        self._printer.text(f"{3*'#'}THIS TRANSACTION{3*'#'}")
+        self._printer.text(f"{anchor_event.timestamp}")
+        self._printer.text(f"{anchor_event.category}")
+        all_transactions = AnchorEvent.objects.filter(account__exact=anchor_event.account).order_by("-timestamp")
+        transaction_delta = anchor_event.account.get_balance(timestamp=anchor_event.timestamp-datetime.timedelta(seconds=0.1))
+        if transaction_delta >= 0:
+            delta_char = "+"
+        else:
+            delta_char = "-"
+        self._printer.text(f"{delta_char} {transaction_delta}")
 
     def _print_customer_info(self, customer: Customer):
         self._printer.set(align="center")
@@ -420,22 +433,18 @@ class ReceiptPrinter(models.Model):
 
     def print_transaction_receipt(self, customer: Customer) -> None:
         num_tabs = 5
-        self._printer.open()
         self._print_header()
         self._print_account_info(customer)
         self._print_customer_info(customer)
+        self._print_transaction_info(customer)
         self._printer.cut()
-        self._printer.close()
     
     def print_new_customer_receipt(self, customer: Customer) -> None:
-        # self._client.open()
         self._print_header()
         self._print_account_info(customer)
         self._print_customer_info(customer)
         self._print_referral_tabs(customer=customer)
         self._printer.cut()
-
-        # self._client.close()
 
 class BankState(models.Model):
     eek_level = models.IntegerField(default=0)

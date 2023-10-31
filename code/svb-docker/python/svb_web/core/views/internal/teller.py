@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-import core.models
+from core.models import Customer, Account, ReceiptPrinter
 from django.contrib.auth.decorators import login_required
 import core.forms
 
@@ -22,7 +22,7 @@ def lookup_accounts(request, customer_id=None):
             # process the data in form.cleaned_data as required
             customer_id = form.cleaned_data['customer_id']
             try:
-                customer = get_object_or_404(core.models.Customer, pk=customer_id)
+                customer = get_object_or_404(Customer, pk=customer_id)
                 # redirect to a new URL:
                 return HttpResponseRedirect('/internal/accounts/edit/' + customer_id + '/')
             except:
@@ -43,10 +43,10 @@ def lookup_accounts(request, customer_id=None):
 def make_withdrawal(request):
     form_account_number = request.POST['account_number']
     withdrawal_amount = int(request.POST['withdrawal_amount'])
-    account_to_withdraw_from = core.models.Account.objects.get(account_number=form_account_number)
-    bank_reserve_account = core.models.Account.objects.get(account_name="RESERVES")
-    bank_disbursed_account = core.models.Account.objects.get(account_name="DISBURSED")
-    success = core.models.Account.transfer_funds(account_to_withdraw_from, bank_disbursed_account, withdrawal_amount)
+    account_to_withdraw_from = Account.objects.get(account_number=form_account_number)
+    bank_reserve_account = Account.objects.get(account_name="RESERVES")
+    bank_disbursed_account = Account.objects.get(account_name="DISBURSED")
+    success = Account.transfer_funds(account_to_withdraw_from, bank_disbursed_account, withdrawal_amount)
     if success:
         # This could possibly create a race condition
         current_reserves = bank_reserve_account.get_balance()
@@ -71,7 +71,7 @@ def edit_accounts(request, customer_id=None):
     if request.method == 'POST':
         if 'action' in request.POST:
             messages = teller_actions(request)
-    customer = core.models.Customer.objects.get(pk=customer_id)
+    customer = Customer.objects.get(pk=customer_id)
     context = {
         "customer": customer,
         "messages": messages,
@@ -79,6 +79,9 @@ def edit_accounts(request, customer_id=None):
                                         "form": core.forms.MakeWithdrawalForm(initial={'account_number': account.account_number}),
                                         "account": account,
                                         "current_balance": account.get_balance()
-         } for account in customer.account_set.all()]
+         } for account in customer.account_set.all()],
+        'printer_names': [printer.name for printer in ReceiptPrinter.objects.all()],
+        'receipt_type': "transaction",
+        'customer_id': customer.customer_id,
     }
     return render(request, "internal/teller.html", context)
