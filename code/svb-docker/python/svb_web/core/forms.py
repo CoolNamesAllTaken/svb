@@ -105,4 +105,9 @@ class UpdateRatesBankForm(forms.Form):
 
 class SetEekLevelBankForm(forms.Form):
     new_eek_level = forms.IntegerField()
+
+
+class MakeWithdrawalForm(forms.Form):
+    withdrawal_amount = forms.IntegerField()
+    account_number = forms.CharField()
     

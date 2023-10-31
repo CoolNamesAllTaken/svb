@@ -5,6 +5,7 @@ from datetime import date, datetime, timezone
 from core.utils.debit_card import assemble_debit_card_image, encode_debit_card_image
 import math
 import os.path
+import escpos.printer
 
 from django.conf import settings
 
@@ -391,4 +392,7 @@ class ReceiptPrinter(models.Model):
 
 class BankState(models.Model):
     eek_level = models.IntegerField(default=0)
+    new_customer_starting_interest_rate = models.FloatField(default=0.0, blank=True, null=True)
+    new_customer_starting_balance = models.DecimalField(decimal_places=3, max_digits=10, blank=True, null=True)
+    customer_referral_reward_amount = models.DecimalField(decimal_places=3, max_digits=10, blank=True, null=True)
     timestamp = models.DateTimeField(default=datetime.now)

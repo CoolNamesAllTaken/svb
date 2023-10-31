@@ -1,0 +1,22 @@
+{% extends "internal/base.html" %}
+{% load static %}
+{% block content %}
+<div>
+    <h1>Silicandy Valley Bank Internal Website</h1>
+    <h2>Teller Interface</h2>
+    {{ messages }}
+    <h3>Customer details for {{ customer.customer_id }}</h3>
+    <p>Customer: {{ customer.first_name }} {{ customer.costume }}</p>
+    <p>Security candy (hover to show): {{ customer.security_candy }}</p>
+    {% for entry in account_withdrawal_entries %}
+        <h3>Account {{ entry.account.account_number }}</h3>
+        Current account balance: 🍬{{ entry.current_balance }}
+        <form id="withdraw-account-{{ account.account_number }}" method="post">
+            {% csrf_token %}
+            {% include "../snippets/form_renderer.html" with form=entry.form %}
+            <button type="submit" name="action" value="make_withdrawal">Withdraw</button>
+        </form>
+    {% endfor %}
+</div>
+
+{% endblock %}
