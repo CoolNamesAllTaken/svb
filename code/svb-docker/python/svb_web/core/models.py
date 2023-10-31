@@ -87,6 +87,7 @@ class Customer(models.Model):
 
     # Constants
     CUSTOMER_ID_MAX_LENGTH = 12 # maximum number of characters for customer_id
+    CUSTOMER_URL_MAX_LENGTH = 100
 
     # Model Parameters
     customer_id = models.CharField(default="TBA", max_length=CUSTOMER_ID_MAX_LENGTH, primary_key=True)
