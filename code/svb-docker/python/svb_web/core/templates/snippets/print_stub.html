@@ -19,7 +19,8 @@
                 <option value="{{ name }}"> {{ name }} </option>
             {% endfor %}
         </select> 
-        <input type="hidden" name="customer_id" value="{{customer_id}}">
+        <input type="hidden" name="receipt_type" value="{{ receipt_type }}">
+        <input type="hidden" name="customer_id" value="{{ customer_id }}">
         <input type="submit" value="PRINT">
     </fieldset>
 </form>

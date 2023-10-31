@@ -8,6 +8,4 @@ from .internal.banker import *
 from .internal.teller import *
 from .internal.display import *
 from .internal.print_receipt import *
-from .internal.print_example import *
-from .internal.populate_db import *
 from .internal.manager import *

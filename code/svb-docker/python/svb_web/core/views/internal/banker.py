@@ -126,7 +126,8 @@ def edit_customer(request, customer_id=None):
         'debit_card_front_image': encode_debit_card_image(os.path.join(settings.STATIC_ROOT, "core", "debit_card", "svb_debit_card_front.png")),
         'debit_card_rear_image': debit_card_rear_image,
         'printer_names': [printer.name for printer in ReceiptPrinter.objects.all()],
-        "customer_id": Customer.objects.all()[0].customer_id,
+        'receipt_type': "new_customer",
+        'customer_id': Customer.objects.all()[0].customer_id,
     }
     return render(request, "internal/edit_customer.html", context)
 
