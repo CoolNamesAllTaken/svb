@@ -1,7 +1,7 @@
 from __future__ import annotations # allow type hinting with the type of the enclosing class
 
 from django.db import models
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from core.utils.debit_card import assemble_debit_card_image, encode_debit_card_image
 import math
 import os
@@ -12,11 +12,7 @@ import PIL.Image
 
 from django.conf import settings
 
-def get_current_utc_timestamp():
-    """
-    @brief Function to get the current timezone aware timestamp.
-    """
-    return datetime.now(tz=timezone.utc)
+from core.utils.time import get_current_utc_timestamp
 
 class DebitCardPrintJob(models.Model):
     job_number = models.AutoField(primary_key=True)
@@ -30,6 +26,12 @@ class Customer(models.Model):
         @retval customer_id as a string.
         """
         return self.customer_id
+    
+    def get_num_referrals(self):
+        """
+        @brief Returns the number of customers that have been refered by this customer.
+        """
+        return Customer.objects.filter(referrer__exact=self).count()-1
 
     def get_customer_id(self):
         """
@@ -87,6 +89,7 @@ class Customer(models.Model):
 
     # Constants
     CUSTOMER_ID_MAX_LENGTH = 12 # maximum number of characters for customer_id
+    CUSTOMER_URL_MAX_LENGTH = 100
 
     # Model Parameters
     customer_id = models.CharField(default="TBA", max_length=CUSTOMER_ID_MAX_LENGTH, primary_key=True)
@@ -369,8 +372,8 @@ class ReceiptPrinter(models.Model):
     def __str__(self):
         return self.name
 
-    def connect_to_printer(self):
-        self._client = escpos.printer.Network(
+    def connect(self):
+        self._printer = escpos.printer.Network(
             self.ip_address
         )
 
@@ -385,58 +388,63 @@ class ReceiptPrinter(models.Model):
         small_banner_img = default_banner_img.resize(
             [x // 4 for x in default_banner_img.size]
         )
-        self._client.set(align="center")
-        self._client.image(small_banner_img)
-        self._client.text("\n")
+        self._printer.set(align="center")
+        self._printer.image(small_banner_img)
+        self._printer.text("\n")
     
     def _print_referral_tabs(self, customer: Customer, num_tabs: int=5):
         customer_referral_reward_amount = BankState.objects.latest("timestamp").customer_referral_reward_amount
         for tab in range(num_tabs):
-            self._client.text(f"{customer.first_name} {customer.costume} says:")
-            self._client.text(f"Get an extra {customer_referral_reward_amount}* treat credits by using my referral code!")
-            self._client.qr(customer.get_absolute_url(), size=2)
+            self._printer.cut()
+            self._printer.text(f"{customer.first_name} {customer.costume} ({customer.customer_id}) says:")
+            self._printer.text("\n")
+            self._printer.text(f"Get an extra {customer_referral_reward_amount:.1f} treat credits\nby using my referral code!")
+            self._printer.text("\n")
+            self._printer.qr(customer.get_absolute_url(), size=2)
 
     def _print_account_info(self, customer: Customer):
-        self._client.set(align="left")
+        self._printer.set(align="left")
         accounts = Account.objects.filter(customer__exact=customer.customer_id)
         NUM_CHARS_SHOWN = 4
         for account in accounts:
             padded_account_id = NUM_CHARS_SHOWN * "0" + str(account.account_number)
             censored_account_id = 5 * "*" + padded_account_id[-NUM_CHARS_SHOWN:]
-            self._client.text(f"Account Number: {censored_account_id}\n")
-            self._client.text(f"Account Balance: {account.get_balance()}\n")
-            self._client.text(10 * "#" + "\n")
+            self._printer.text(f"Account Number: {censored_account_id}\n")
+            self._printer.text(f"Account Balance: {account.get_balance()}\n")
+            self._printer.text(f"30 min interest rate: {account.get_interest_rate()}\n")
+    
+    def _print_transaction_info(self, anchor_event: AnchorEvent):
+        self._printer.text(f"\n{3*'#'}THIS TRANSACTION{3*'#'}\n\n")
+        self._printer.text(f"{anchor_event.timestamp}\n")
+        all_transactions = AnchorEvent.objects.filter(account__exact=anchor_event.account).order_by("-timestamp")
+        transaction_delta = anchor_event.account.get_balance(timestamp=anchor_event.timestamp-timedelta(seconds=0.1))
+        if transaction_delta >= 0:
+            delta_char = "+"
+        else:
+            delta_char = "-"
+        self._printer.text(f"{anchor_event.category} {delta_char} {transaction_delta}\n\n")
 
     def _print_customer_info(self, customer: Customer):
-        self._client.set(align="center")
-        self._client.text("CUSTOMER PAGE\n")
-        self._client.qr(customer.get_absolute_url(), size=10)
+        self._printer.set(align="center")
+        self._printer.text("CUSTOMER PAGE\n")
+        self._printer.text(f"{customer.get_absolute_url()}\n")
+        self._printer.qr(customer.get_absolute_url(), size=10)
 
 
-    def print_transaction_receipt(self, customer: Customer) -> None:
+    def print_transaction_receipt(self, anchor_event:AnchorEvent) -> None:
         num_tabs = 5
-        self._client.open()
         self._print_header()
-        self._print_account_info(customer)
-        self._print_customer_info(customer)
-        self._client.cut()
-        # customer_referral_reward_amount = BankState.objects.latest("timestamp").customer_referral_reward_amount
-        # for tab in range(num_tabs):
-        #     print(f"{customer.first_name} {customer.costume} says:")
-        #     self._client.text(f"{customer.first_name} {customer.costume} says:")
-        #     self._client.text(f"Get an extra {customer_referral_reward_amount}* treat credits by using my referral code!")
-            # self._client.qr(customer.get_absolute_url(), size=2)
-        # self._print_referral_tabs(customer)
-        self._client.close()
+        self._print_account_info(anchor_event.account.customer)
+        self._print_transaction_info(anchor_event)
+        self._print_customer_info(anchor_event.account.customer)
+        self._printer.cut()
     
     def print_new_customer_receipt(self, customer: Customer) -> None:
-        self._client.open()
         self._print_header()
         self._print_account_info(customer)
         self._print_customer_info(customer)
-        self._client.cut()
-
-        self._client.close()
+        self._print_referral_tabs(customer=customer)
+        self._printer.cut()
 
 class BankState(models.Model):
     eek_level = models.IntegerField(default=0)

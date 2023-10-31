@@ -33,7 +33,7 @@ DEBIT_CARD_BOLD_FONT_PATH = os.path.join(os.path.dirname(os.path.realpath(__file
 
 """Public Functions"""
 
-def parse_customer_id_from_url(url: str):
+def parse_customer_id_from_url(url: str, return_original_if_not_found=False):
     """
     @brief Parses a URL of type svb.pantsforbirds.com/c/<customer_id> and returns just the customer ID.
     @param[in] URL String to parse customer_id from.
@@ -42,7 +42,10 @@ def parse_customer_id_from_url(url: str):
     customer_domain = f"{settings.ROOT_DOMAIN}/c/"
     domain_beginning = url.rfind(customer_domain)
     if domain_beginning == -1:
-        return None # Domain beginning wasn't found.
+        if return_original_if_not_found:
+            return url
+        else:
+            return None # Domain beginning wasn't found.
     url = url[domain_beginning+len(customer_domain):]
     tokenized_url = url.split('/')
     return tokenized_url[0] # just return the customer in case there's stuff afterwards

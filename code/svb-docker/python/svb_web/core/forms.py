@@ -2,15 +2,21 @@ from django import forms
 from core.models import Customer, Account, NewsArticle, NewsAuthor
 from django.core.exceptions import ObjectDoesNotExist # used in CustomerForm
 
+from .utils.debit_card import parse_customer_id_from_url
 from django.conf import settings # for access to some .env variables
 
 class CustomerLookupForm(forms.Form):
-    customer_id = forms.CharField(max_length=Customer.CUSTOMER_ID_MAX_LENGTH)
+    customer_id = forms.CharField(max_length=Customer.CUSTOMER_URL_MAX_LENGTH)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data['customer_id'] = parse_customer_id_from_url(cleaned_data['customer_id'], return_original_if_not_found=True)
+        return cleaned_data
 
 class CustomerForm(forms.ModelForm):
     referrer_str = forms.CharField(
         label="Referrer",
-        max_length=Customer.CUSTOMER_ID_MAX_LENGTH, 
+        max_length=Customer.CUSTOMER_URL_MAX_LENGTH, 
         required=False,
     )
 
@@ -30,7 +36,7 @@ class CustomerForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         # Convert the referrer_str into a proper ForeignKey.
-        referrer_str = cleaned_data.get('referrer_str')
+        referrer_str = parse_customer_id_from_url(cleaned_data.get('referrer_str'), return_original_if_not_found=True)
         # cleaned_data['referrer'] = Customer.objects.get(pk=referrer_str)
         if referrer_str == "":
             cleaned_data['referrer'] = None
@@ -45,7 +51,7 @@ class CustomerForm(forms.ModelForm):
 
 class AccountTransactionForm(forms.Form):
     customer_id = forms.CharField(
-        max_length=Customer.CUSTOMER_ID_MAX_LENGTH,
+        max_length=Customer.CUSTOMER_URL_MAX_LENGTH,
         disabled=True
     )
     action = forms.ChoiceField(
@@ -72,6 +78,8 @@ class AccountTransactionForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
 
+        cleaned_data['customer_id'] = parse_customer_id_from_url(cleaned_data['customer_id'], return_original_if_not_found=True)
+
         if cleaned_data['from_account'] not in Account.objects.filter(customer__customer_id=cleaned_data['customer_id']):
             raise forms.ValidationError(
                 f"From Account does not belong to customer with ID {cleaned_data['customer_id']}"
@@ -80,7 +88,7 @@ class AccountTransactionForm(forms.Form):
             raise forms.ValidationError(
                 f"To Account does not belong to customer with ID {cleaned_data['customer_id']}"
             )
-        # Don't bother returning cleaned_data, not overriding anything.
+        return cleaned_data
         
 class ArticleForm(forms.ModelForm):
     class Meta:
