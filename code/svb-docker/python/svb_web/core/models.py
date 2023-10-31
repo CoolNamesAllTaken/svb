@@ -5,6 +5,10 @@ from datetime import date, datetime, timezone
 from core.utils.debit_card import assemble_debit_card_image, encode_debit_card_image
 import math
 import os
+import escpos.printer
+
+# For receipt printing
+import PIL.Image
 
 from django.conf import settings
 
@@ -389,8 +393,8 @@ class ReceiptPrinter(models.Model):
         customer_referral_reward_amount = BankState.objects.latest("timestamp").customer_referral_reward_amount
         for tab in range(num_tabs):
             self._client.text(f"{customer.first_name} {customer.costume} says:")
-            # self._client.text(f"Get an extra {customer_referral_reward_amount}* treat credits by using my referral code!")
-            # self._client.qr("hello", size=5)
+            self._client.text(f"Get an extra {customer_referral_reward_amount}* treat credits by using my referral code!")
+            self._client.qr(customer.get_absolute_url(), size=2)
 
     def _print_account_info(self, customer: Customer):
         self._client.set(align="left")
@@ -410,13 +414,19 @@ class ReceiptPrinter(models.Model):
 
 
     def print_transaction_receipt(self, customer: Customer) -> None:
+        num_tabs = 5
         self._client.open()
         self._print_header()
         self._print_account_info(customer)
         self._print_customer_info(customer)
         self._client.cut()
-        self._print_referral_tabs(customer)
-        time.sleep(0.1)
+        # customer_referral_reward_amount = BankState.objects.latest("timestamp").customer_referral_reward_amount
+        # for tab in range(num_tabs):
+        #     print(f"{customer.first_name} {customer.costume} says:")
+        #     self._client.text(f"{customer.first_name} {customer.costume} says:")
+        #     self._client.text(f"Get an extra {customer_referral_reward_amount}* treat credits by using my referral code!")
+            # self._client.qr(customer.get_absolute_url(), size=2)
+        # self._print_referral_tabs(customer)
         self._client.close()
     
     def print_new_customer_receipt(self, customer: Customer) -> None:
