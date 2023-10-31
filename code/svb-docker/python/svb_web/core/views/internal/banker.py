@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from core.models import Customer
+from core.models import Customer, Account, BankState
 from django.contrib.auth.decorators import login_required
 from core.forms import CustomerForm, CustomerLookupForm
 from core.utils.debit_card import *
@@ -58,8 +58,14 @@ def create_customer_from_form(form):
         customer.referrer = cleaned_data['referrer']
         customer.joined_date = cleaned_data['joined_date']
         customer.security_candy = cleaned_data['security_candy']
-        customer.save() # Caitlin loves John a lot <3
+        customer.save()
         # Update the Customer model in the database with new info.
+        # Create a new account with two pieces of candy.
+        account = Account(customer=customer)
+        account.save()
+        current_bank_state = BankState.objects.latest("timestamp")
+        account.init(balance=current_bank_state.new_customer_starting_balance,
+                     interest_rate=current_bank_state.new_customer_starting_interest_rate)
 
     # TODO: Build and save debit card.
     create_debit_card(customer)
