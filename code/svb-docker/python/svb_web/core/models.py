@@ -16,8 +16,9 @@ def get_current_utc_timestamp():
     return datetime.now(tz=timezone.utc)
 
 class DebitCardPrintJob(models.Model):
+    job_number = models.AutoField(primary_key=True)
     timestamp = models.DateTimeField(default=get_current_utc_timestamp) # Pass handle to datetime.now so it gets evaluated when the model is created, not defined!
-    debit_card_pdf_path = models.CharField(blank=False, null=False)
+    debit_card_file_bytes = models.BinaryField(null=True, blank=True)
 
 class Customer(models.Model):
     def __str__(self) -> str:
@@ -416,6 +417,6 @@ class ReceiptPrinter(models.Model):
 class BankState(models.Model):
     eek_level = models.IntegerField(default=0)
     new_customer_starting_interest_rate = models.FloatField(default=0.0, blank=True)
-    new_customer_starting_balance = models.DecimalField(decimal_places=3, max_digits=10, blank=True)
-    customer_referral_reward_amount = models.DecimalField(decimal_places=3, max_digits=10, blank=True)
+    new_customer_starting_balance = models.DecimalField(default=2.0, decimal_places=3, max_digits=10, blank=True)
+    customer_referral_reward_amount = models.DecimalField(default=1.0, decimal_places=3, max_digits=10, blank=True)
     timestamp = models.DateTimeField(default=datetime.now)

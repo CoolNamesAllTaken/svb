@@ -8,6 +8,9 @@ Windows: Install Git Bash.
 ## Installation on a new development machine for localhost testing
 1. Install Docker Desktop.
 2. Run `docker compose up --build`. Run with the `-d` option if you want it to be detached (non-interactive).
+3. Use `docker compose exec site bash` to run `python manage.py createsuperuser` in the `site` docker container.
+4. Go to `localhost:8000/internal` and login with the credentials created in step 3.
+5. Go to the "Manager" tab and initialize the bank.
 
 ## Bring Stuff Up
 Development: `docker compose up --build`

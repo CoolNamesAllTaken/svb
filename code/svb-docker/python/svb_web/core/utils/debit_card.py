@@ -76,6 +76,7 @@ def assemble_debit_card_image(
 
     qr_code_image = qrcode.make(customer_page_url, border = 0)
     qr_code_image = qr_code_image.resize((mm2pix(QR_CODE_SIDE_LENGTH_MM), mm2pix(QR_CODE_SIDE_LENGTH_MM)))
+    qr_code_image = qr_code_image
     debit_card.paste(qr_code_image, (mm2pix(QR_CODE_TOP_LEFT[0]), mm2pix(QR_CODE_TOP_LEFT[1])))
 
     candy_bar_image = Image.open(CANDY_BAR_IMAGE_PATH)
@@ -116,7 +117,9 @@ def assemble_debit_card_image(
 
     debit_card.save(output_path)
     if save_pdf:
-        debit_card.save(os.path.splitext(output_path)[0] + ".pdf")
+        debit_card.save(
+            os.path.splitext(output_path)[0] + ".pdf"
+        )
 
 def encode_debit_card_image(image_path):
     """

@@ -149,10 +149,11 @@ def print_debit_card(request, customer_id):
             return JsonResponse(response_dict)
         try:
             # Print a debit card by punting it onto the database. Let the print server deal with it!
-            print_job = DebitCardPrintJob(
-                debit_card_pdf_path = customer.get_debit_card_path(pdf=True)
-            )
-            print_job.save()
+            with open (customer.get_debit_card_path(pdf=True), "rb") as debit_card_file_bytes:
+                print_job = DebitCardPrintJob(
+                    debit_card_file_bytes = debit_card_file_bytes.read()
+                )
+                print_job.save()
         except Exception as e:
             response_dict['error_msg'] = "Failed to print ID card with exception: {}.".format(e)
             return JsonResponse(response_dict)

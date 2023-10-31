@@ -66,6 +66,8 @@ def scary_reset_bank(request):
         core.models.Customer.objects.all().delete()
         # Delete remaining accounts (non-customer accounts like RESERVES and DISBURSED).
         core.models.Account.objects.all().delete()
+        # Delete all debit card print jobs.
+        core.models.DebitCardPrintJob.objects.all().delete()
         return [f"The bank has been reset."]
     else:
         return [f"Scary reset password incorrect."]
