@@ -2,8 +2,12 @@ from __future__ import annotations # allow type hinting with the type of the enc
 
 from django.db import models
 from datetime import date, datetime, timezone
-import escpos.printer
+from core.utils.debit_card import assemble_debit_card_image, encode_debit_card_image
 import math
+import os.path
+import escpos.printer
+
+from django.conf import settings
 
 def get_current_utc_timestamp():
     """
@@ -36,6 +40,35 @@ class Customer(models.Model):
         customer_counter = Customer.objects.filter(joined_date=date.today()).count()
         return f"{costume_name_prefix}{date_code}{customer_counter:0>4}" # this will break something after 9999 licenses in one day!
 
+    def get_absolute_url(self):
+        return f"https://{settings.ROOT_DOMAIN}/c/{self.customer_id}"
+
+    def get_debit_card_path(self, pdf=False):
+        """
+        @brief Get a path to the customer's debit card image under MEDIA_ROOT.
+        @param[in] pdf Send path to a PDF file if True, otherwise supply the PNG path.
+        """
+        if pdf:
+            ext = ".pdf"
+        else:
+            ext = ".png"
+        return os.path.join(settings.MEDIA_ROOT, "debit_cards", self.customer_id, f"{self.customer_id}{ext}")
+
+    def create_debit_card(self):
+        """
+        @brief Generate debit card image and PDF files for the given Customer.
+        @param[in] Customer to generate debit card for.
+        """
+        assemble_debit_card_image(
+            self.get_debit_card_path(pdf=False),
+            save_pdf=True,
+            first_name=self.first_name,
+            costume=self.costume,
+            customer_id=self.customer_id,
+            customer_page_url=self.get_absolute_url(),
+            joined_date=self.joined_date
+        )
+
     def save(self, *args, **kwargs):
         """
         @brief Override the model save function to create the new customer ID from first name, costume, and timestamp.
@@ -43,10 +76,11 @@ class Customer(models.Model):
         if self.customer_id == "TBA":
             # Customer object is being saved for the first time.
             self.customer_id = self.get_customer_id()
+        
+        # Update debit card image.
+        self.create_debit_card()
+        
         super(Customer, self).save(*args, **kwargs) # call super save function
-    
-    def get_absolute_url(self):
-        return f"c/{self.customer_id}"
 
     # Constants
     CUSTOMER_ID_MAX_LENGTH = 12 # maximum number of characters for customer_id
@@ -328,37 +362,34 @@ class ReceiptPrinter(models.Model):
         small_banner_img = default_banner_img.resize(
             [x // 4 for x in default_banner_img.size]
         )
-        self._client.open()
         self._client.set(align="center")
         self._client.image(small_banner_img)
+        self._client.text("\n")
 
     def _print_account_info(self, customer: Customer):
-        self._client.open()
         self._client.set(align="left")
-        # censored_account_id = 5 * "*" + account.account_number[-4:]
-        # self._client.text(f"Account Number: {censored_account_id}")
+        accounts = Account.objects.filter(customer__exact=customer.customer_id)
+        NUM_CHARS_SHOWN = 4
+        for account in accounts:
+            padded_account_id = NUM_CHARS_SHOWN * "0" + str(account.account_number)
+            censored_account_id = 5 * "*" + padded_account_id[-NUM_CHARS_SHOWN:]
+            self._client.text(f"Account Number: {censored_account_id}\n")
+            self._client.text(f"Account Balance: {account.get_balance()}\n")
+            self._client.text(10 * "#" + "\n")
 
     def _print_customer_info(self, customer: Customer):
-        self._client.open()
         self._client.set(align="center")
-        self._client.text("CUSTOMER PAGE")
-        self._client.qr(customer.get_absolute_url())
+        self._client.text("CUSTOMER PAGE\n")
+        self._client.qr(customer.get_absolute_url(), size=10)
 
 
-    def print_deposit_receipt(self, customer: Customer) -> None:
+    def print_transaction_receipt(self, customer: Customer) -> None:
         self._client.open()
         self._print_header()
-        self._client.text("deposit receipt")
+        self._print_account_info(customer)
         self._print_customer_info(customer)
         self._client.cut()
-
-    def print_withdrawal_receipt(self, customer: Customer) -> None:
-        self._client.open()
-        self._print_header()
-        self._client.text("withdraw receipt")
-        self._print_customer_info(customer)
-        self._client.cut()
-
+        self._client.close()
 
 class BankState(models.Model):
     eek_level = models.IntegerField(default=0)

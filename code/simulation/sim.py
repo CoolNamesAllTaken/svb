@@ -7,42 +7,54 @@ HOUR = 3600.0
 people_per_hour = 100.0
 
 # Proportion of people who will return for candy
-percent_return = .5
+percent_return = .7
 
 # Static interest rate, per 30 mins
-interest_rate = .5
+interest_rate = 1.0
 
 # Number of pieces of candy given to children to start with
 initial_candy = 2.0
 
 # Total candy reserves
-max_candy = 1000.0
+max_candy = 1800.0
+
+time_to_cut = 2 * HOUR
+max_candy = 1800.0
+
+time_to_cut = 2 * HOUR
 
 # 4 hours of runtime (starting at 6pm, ending at 10pm)
-TOTAL_TIME = 4 * HOUR
+TOTAL_TIME = 3 * HOUR
+TOTAL_TIME = 3 * HOUR
 
 INCREMENT = HOUR / 2
 
-def run_simulation(people_per_hour, percent_return, interest_rate, initial_candy, max_candy):
+def run_simulation(people_per_hour, percent_return, interest_rate, new_interest, initial_candy, max_candy, candy_left):
     plot_timescale = np.arange(0, TOTAL_TIME, int(HOUR/people_per_hour/percent_return))
 
     result = []
+    start = 0
+    old_balances = 0
 
     for i in range(plot_timescale.shape[0]):
-        interest = np.sum(np.floor(initial_candy * np.exp(interest_rate / INCREMENT * (plot_timescale[i] - plot_timescale[:i]))))
-        result.append(interest + initial_candy * (1 - percent_return) * i / percent_return)
+        all_account_balances = initial_candy * np.exp(interest_rate / INCREMENT * (plot_timescale[i] - plot_timescale[start:i]))
+        interest = np.sum(np.floor(all_account_balances))
+        old_interest = old_balances * np.exp(interest_rate / INCREMENT * (plot_timescale[i] - plot_timescale[start]))
+        previous_balances = interest + old_interest
+        total_balance = previous_balances + initial_candy * (1 - percent_return) * i / percent_return
+        if total_balance > max_candy - candy_left and start == 0:
+            old_balances = np.sum(all_account_balances)
+            interest_rate = new_interest
+            start = i
+        result.append(total_balance)
     
     result = np.array(result)
     result = np.where(result > max_candy, max_candy, result)
 
     return plot_timescale, result
 
-x, y = run_simulation(people_per_hour, percent_return, 1.4, 1, max_candy)
-plt.plot(x/HOUR, y, label='140%/1')
-x, y = run_simulation(people_per_hour, percent_return, 1, 2, max_candy)
+x, y = run_simulation(people_per_hour, percent_return, interest_rate, .27, initial_candy, max_candy, 1000)
 plt.plot(x/HOUR, y, label='100%/2')
-x, y = run_simulation(people_per_hour, percent_return, .75, 3, max_candy)
-plt.plot(x/HOUR, y, label='75%/3')
 plt.legend(title='Interest Rate/Initial Pieces of Candy')
 plt.xlabel('Hours since start')
 plt.ylabel('Total candy reserves')

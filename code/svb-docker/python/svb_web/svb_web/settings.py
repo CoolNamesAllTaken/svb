@@ -21,6 +21,7 @@ load_dotenv(Path('../../../.env'))
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+ROOT_DOMAIN = "svb.pantsforbirds.com" # Custom (not used by Django). Used in SVB modules for absolute paths.
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -36,11 +37,11 @@ else:
 TESTING = os.getenv("TESTING", 0)
 
 ALLOWED_HOSTS = [
-    "svb.pantsforbirds.com",
+    ROOT_DOMAIN,
     "localhost"
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://svb.pantsforbirds.com']
+CSRF_TRUSTED_ORIGINS = [f"https://{ROOT_DOMAIN}"]
 
 # Application definition
 
