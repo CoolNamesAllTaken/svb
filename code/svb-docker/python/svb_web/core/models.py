@@ -14,10 +14,9 @@ def get_current_utc_timestamp():
     """
     return datetime.now(tz=timezone.utc)
 
-
 class IdCardPrintJob(models.Model):
-    pass
-
+    timestamp = models.DateTimeField(default=datetime.now) # Pass handle to datetime.now so it gets evaluated when the model is created, not defined!
+    id_card_pdf_path = models.CharField(blank=False, null=False)
 
 class Customer(models.Model):
     def __str__(self) -> str:
