@@ -7,6 +7,7 @@ import os.path
 from core.forms import CustomerForm, CustomerLookupForm
 from core.utils.debit_card import encode_debit_card_image
 
+from core.utils.time import get_current_utc_timestamp, get_current_utc_timestamp_str
 
 @login_required
 def lookup_customer(request, customer_id=None):
@@ -127,6 +128,7 @@ def edit_customer(request, customer_id=None):
         'debit_card_rear_image': debit_card_rear_image,
         'printer_names': [printer.name for printer in ReceiptPrinter.objects.all()],
         'receipt_type': "new_customer",
+        'receipt_timestamp': get_current_utc_timestamp_str(), # send timestamp of render
     }
     return render(request, "internal/edit_customer.html", context)
 

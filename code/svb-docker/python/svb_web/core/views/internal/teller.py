@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from core.models import Customer, Account, ReceiptPrinter
 from django.contrib.auth.decorators import login_required
 import core.forms
+from core.utils.time import get_current_utc_timestamp, get_current_utc_timestamp_str
 
 @login_required
 def lookup_accounts(request, customer_id=None):
@@ -76,12 +77,15 @@ def edit_accounts(request, customer_id=None):
         "customer": customer,
         "messages": messages,
         "account_withdrawal_entries": [{
-                                        "form": core.forms.MakeWithdrawalForm(initial={'account_number': account.account_number}),
+                                        "form": core.forms.MakeWithdrawalForm(
+                                            initial={'account_number': account.account_number}),
                                         "account": account,
                                         "current_balance": account.get_balance()
          } for account in customer.account_set.all()],
         'printer_names': [printer.name for printer in ReceiptPrinter.objects.all()],
         'receipt_type': "transaction",
         'customer_id': customer.customer_id,
+        'receipt_timestamp': get_current_utc_timestamp_str(),
+        'num_referrals': customer.get_num_referrals()
     }
     return render(request, "internal/teller.html", context)

@@ -1,23 +1,18 @@
 from __future__ import annotations # allow type hinting with the type of the enclosing class
 
 from django.db import models
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from core.utils.debit_card import assemble_debit_card_image, encode_debit_card_image
 import math
 import os
 import escpos.printer
-import datetime
 
 # For receipt printing
 import PIL.Image
 
 from django.conf import settings
 
-def get_current_utc_timestamp():
-    """
-    @brief Function to get the current timezone aware timestamp.
-    """
-    return datetime.now(tz=timezone.utc)
+from core.utils.time import get_current_utc_timestamp
 
 class DebitCardPrintJob(models.Model):
     job_number = models.AutoField(primary_key=True)
@@ -31,6 +26,12 @@ class Customer(models.Model):
         @retval customer_id as a string.
         """
         return self.customer_id
+    
+    def get_num_referrals(self):
+        """
+        @brief Returns the number of customers that have been refered by this customer.
+        """
+        return Customer.objects.filter(referrer__exact=self).count()-1
 
     def get_customer_id(self):
         """
@@ -410,33 +411,32 @@ class ReceiptPrinter(models.Model):
             censored_account_id = 5 * "*" + padded_account_id[-NUM_CHARS_SHOWN:]
             self._printer.text(f"Account Number: {censored_account_id}\n")
             self._printer.text(f"Account Balance: {account.get_balance()}\n")
-            self._printer.text(10 * "#" + "\n")
             self._printer.text(f"30 min interest rate: {account.get_interest_rate()}\n")
     
     def _print_transaction_info(self, anchor_event: AnchorEvent):
-        self._printer.text(f"{3*'#'}THIS TRANSACTION{3*'#'}")
-        self._printer.text(f"{anchor_event.timestamp}")
-        self._printer.text(f"{anchor_event.category}")
+        self._printer.text(f"\n{3*'#'}THIS TRANSACTION{3*'#'}\n\n")
+        self._printer.text(f"{anchor_event.timestamp}\n")
         all_transactions = AnchorEvent.objects.filter(account__exact=anchor_event.account).order_by("-timestamp")
-        transaction_delta = anchor_event.account.get_balance(timestamp=anchor_event.timestamp-datetime.timedelta(seconds=0.1))
+        transaction_delta = anchor_event.account.get_balance(timestamp=anchor_event.timestamp-timedelta(seconds=0.1))
         if transaction_delta >= 0:
             delta_char = "+"
         else:
             delta_char = "-"
-        self._printer.text(f"{delta_char} {transaction_delta}")
+        self._printer.text(f"{anchor_event.category} {delta_char} {transaction_delta}\n\n")
 
     def _print_customer_info(self, customer: Customer):
         self._printer.set(align="center")
         self._printer.text("CUSTOMER PAGE\n")
+        self._printer.text(f"{customer.get_absolute_url()}\n")
         self._printer.qr(customer.get_absolute_url(), size=10)
 
 
-    def print_transaction_receipt(self, customer: Customer) -> None:
+    def print_transaction_receipt(self, anchor_event:AnchorEvent) -> None:
         num_tabs = 5
         self._print_header()
-        self._print_account_info(customer)
-        self._print_customer_info(customer)
-        self._print_transaction_info(customer)
+        self._print_account_info(anchor_event.account.customer)
+        self._print_transaction_info(anchor_event)
+        self._print_customer_info(anchor_event.account.customer)
         self._printer.cut()
     
     def print_new_customer_receipt(self, customer: Customer) -> None:
