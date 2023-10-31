@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.conf import settings
-from core.models import Customer, Account, BankState, DebitCardPrintJob
+from core.models import Customer, Account, BankState, DebitCardPrintJob, ReceiptPrinter
 from django.contrib.auth.decorators import login_required
 import os.path
 from core.forms import CustomerForm, CustomerLookupForm
@@ -125,6 +125,8 @@ def edit_customer(request, customer_id=None):
         'customer_id': customer_id,
         'debit_card_front_image': encode_debit_card_image(os.path.join(settings.STATIC_ROOT, "core", "debit_card", "svb_debit_card_front.png")),
         'debit_card_rear_image': debit_card_rear_image,
+        'printer_names': [printer.name for printer in ReceiptPrinter.objects.all()],
+        "customer_id": Customer.objects.all()[0].customer_id,
     }
     return render(request, "internal/edit_customer.html", context)
 

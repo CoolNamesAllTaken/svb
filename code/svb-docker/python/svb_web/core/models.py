@@ -4,8 +4,7 @@ from django.db import models
 from datetime import date, datetime, timezone
 from core.utils.debit_card import assemble_debit_card_image, encode_debit_card_image
 import math
-import os.path
-import escpos.printer
+import os
 
 from django.conf import settings
 
@@ -372,11 +371,8 @@ class ReceiptPrinter(models.Model):
         )
 
     def _print_header(self):
-        import os
-        import PIL.Image
-        from svb_web.settings import STATIC_ROOT
         banner_pathname = os.path.join(
-            STATIC_ROOT,
+            settings.STATIC_ROOT,
             "core",
             "assets",
             "svb_banner.png"
@@ -388,6 +384,13 @@ class ReceiptPrinter(models.Model):
         self._client.set(align="center")
         self._client.image(small_banner_img)
         self._client.text("\n")
+    
+    def _print_referral_tabs(self, customer: Customer, num_tabs: int=5):
+        customer_referral_reward_amount = BankState.objects.latest("timestamp").customer_referral_reward_amount
+        for tab in range(num_tabs):
+            self._client.text(f"{customer.first_name} {customer.costume} says:")
+            # self._client.text(f"Get an extra {customer_referral_reward_amount}* treat credits by using my referral code!")
+            # self._client.qr("hello", size=5)
 
     def _print_account_info(self, customer: Customer):
         self._client.set(align="left")
@@ -412,6 +415,17 @@ class ReceiptPrinter(models.Model):
         self._print_account_info(customer)
         self._print_customer_info(customer)
         self._client.cut()
+        self._print_referral_tabs(customer)
+        time.sleep(0.1)
+        self._client.close()
+    
+    def print_new_customer_receipt(self, customer: Customer) -> None:
+        self._client.open()
+        self._print_header()
+        self._print_account_info(customer)
+        self._print_customer_info(customer)
+        self._client.cut()
+
         self._client.close()
 
 class BankState(models.Model):
