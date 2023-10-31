@@ -36,7 +36,9 @@ def calculate_historical_data_for_bank():
 
 # Create your views here.
 def index(request):
-    articles = core.models.NewsArticle.objects.all()
+    current_eek_level = core.models.BankState.objects.latest("timestamp").eek_level
+    articles = core.models.NewsArticle.objects.filter(eek_level__lte=current_eek_level).order_by("-eek_level")
+    # Could take just the most recent three but this is good for now.
     historical_obligations, historical_assets = calculate_historical_data_for_bank()
     context = {
                 "articles": articles,
