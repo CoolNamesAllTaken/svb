@@ -18,5 +18,15 @@
         {% include "./snippets/news_feed.html" with articles=articles show_editor_fields=False %}
       </div>
     </div>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-66EK4B8DL4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-66EK4B8DL4');
+    </script>
   </body>
 </html>
