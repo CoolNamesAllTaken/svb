@@ -55,7 +55,7 @@ def create_customer_from_form(form):
         # Manually override the customer fields with cleaned fields since calling form.is_valid() and form.save() on their own
         # does not actually save the form with cleaned data, just with raw data.
         cleaned_data = form.clean()
-        customer, created = Customer.objects.get_or_create(pk=cleaned_data['customer_id'])
+        customer = Customer()
         customer.first_name = cleaned_data['first_name']
         customer.costume = cleaned_data['costume']
         customer.referrer = cleaned_data['referrer']

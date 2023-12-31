@@ -83,9 +83,11 @@ class Customer(models.Model):
             self.customer_id = self.get_customer_id()
         
         # Update debit card image.
+        print(f"creating debit card with first_name={self.first_name} costume={self.costume} customer_id={self.customer_id}")
         self.create_debit_card()
-        
-        super(Customer, self).save(*args, **kwargs) # call super save function
+        print(f"saving customer with first_name={self.first_name} costume={self.costume} customer_id={self.customer_id}")
+        super().save(*args, **kwargs) # call super save function
+        print(f"saved customer with first_name={self.first_name} costume={self.costume} customer_id={self.customer_id}")
 
     # Constants
     CUSTOMER_ID_MAX_LENGTH = 12 # maximum number of characters for customer_id
