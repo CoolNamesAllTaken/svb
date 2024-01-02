@@ -58,7 +58,7 @@ def main():
 
     connection = psycopg2.connect(
         dbname=os.getenv('POSTGRES_DB'), 
-        host="localhost", # must be on same machine as web server! 
+        host=os.getenv('PRINT_SERVER_IP'), # must be on same machine as web server! 
         port=os.getenv('POSTGRES_PORT'),
         user=os.getenv('POSTGRES_USER'), 
         password=os.getenv('POSTGRES_PASSWORD')
